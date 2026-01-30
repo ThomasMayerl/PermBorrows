@@ -1,0 +1,155 @@
+field p_Int_i32_val: s_Int_i32
+field p_RawPtr_val: s_RawPtr
+field p_MutRef_val: s_MutRef
+
+domain s_Param {}
+domain Type {}
+
+adt s_Tuple_2 {
+    s_Tuple_2_cons(field0: s_Param, field1: s_Param)
+}
+
+// normally this would be a domain for the overflow check
+adt s_Int_i32 {
+    s_Int_i32_cons(val: Int)
+}
+
+adt s_RawPtr {
+    s_RawPtr_cons(addr: Int, tag: Int, frac: Perm, prov: Seq[Ref], T$0: Type)
+}
+
+adt s_MutRef {
+    s_MutRef_cons(addr: Ref, tag: Int, frac: Perm, T$0: Type)
+}
+
+predicate p_RawPtr(self: Ref, tag: Int, T$0: Type) {
+    acc(self.p_RawPtr_val)
+}
+
+predicate p_MutRef(self: Ref, tag: Int, T$0: Type) {
+    acc(self.p_MutRef_val)
+}
+
+function p_new_tag(): Int
+ensures result != 0
+
+function s_Tuple_2_field0(self: Ref, T$0: Type, U$1: Type): Ref
+function s_Tuple_2_field1(self: Ref, T$0: Type, U$1: Type): Ref
+
+function p_RawPtr_snap(self: Ref, tag: Int, T$0: Type, frac: Perm): s_RawPtr
+    requires frac > 0/1
+    requires frac <= write
+    requires acc(p_RawPtr(self, tag, T$0), frac)
+
+function p_MutRef_snap(self: Ref, tag: Int, T$0: Type, frac: Perm): s_MutRef
+    requires frac > 0/1
+    requires frac <= write
+    requires acc(p_MutRef(self, tag, T$0), frac)
+
+
+function p_Param_snap(self: Ref, tag: Int, T$0: Type, frac: Perm): s_Param
+    requires frac > 0/1
+    requires frac <= write
+    requires acc(p_Param(self, tag, T$0), frac)
+
+function p_Tuple_2_snap(self: Ref, tag: Int, T$0: Type, U$1: Type, frac: Perm): s_Tuple_2 
+    requires frac > 0/1
+    requires frac <= write
+    requires acc(p_Tuple_2(self, tag, T$0, U$1), frac)
+{
+    (unfolding acc(p_Tuple_2(self,  tag, T$0, U$1), frac) in
+    s_Tuple_2_cons(p_Param_snap(s_Tuple_2_field0(self, T$0, U$1), tag, T$0, frac), p_Param_snap(s_Tuple_2_field1(self,
+    T$0, U$1), tag, U$1, frac)))
+}
+
+function p_Int_i32_snap(self: Ref, tag: Int, frac: Perm): s_Int_i32
+    requires frac > 0/1
+    requires frac <= write 
+    requires acc(p_Int_i32(self, tag), frac) {
+        unfolding acc(p_Int_i32(self, tag), frac) in self.p_Int_i32_val
+    }
+
+method p_Tuple_2_assign(self: Ref, tag: Int, T$0: Type, U$1: Type, value: s_Tuple_2, frac: Perm)
+    requires frac > 0/1
+    requires frac <= write
+    ensures acc(p_Tuple_2(self, tag, T$0, U$1), frac)
+    ensures p_Tuple_2_snap(self, tag, T$0, U$1, frac) == value
+    ensures p_frac(self) == frac
+    ensures unfolding acc(p_Tuple_2(self,  tag, T$0, U$1), frac) in p_frac(s_Tuple_2_field0(self, T$0, U$1)) == frac
+    ensures unfolding acc(p_Tuple_2(self,  tag, T$0, U$1), frac) in p_frac(s_Tuple_2_field1(self, T$0, U$1)) == frac
+
+method p_RawPtr_assign(self: Ref, tag: Int, T$0: Type, value: s_RawPtr, frac: Perm)
+    requires frac > 0/1
+    requires frac <= write
+    ensures acc(p_RawPtr(self, tag, T$0), frac)
+    ensures p_RawPtr_snap(self, tag, T$0, frac) == value
+    ensures p_frac(self) == frac
+
+method p_MutRef_assign(self: Ref, tag: Int, T$0: Type, value: s_MutRef, frac: Perm)
+    requires frac > 0/1
+    requires frac <= write
+    ensures acc(p_MutRef(self, tag, T$0), frac)
+    ensures p_MutRef_snap(self, tag, T$0, frac) == value
+    ensures p_frac(self) == frac
+
+method p_Int_i32_assign(self: Ref, tag: Int, value: s_Int_i32, frac: Perm)
+    requires frac > 0/1
+    requires frac <= write
+    ensures acc(p_Int_i32(self, tag), frac)
+    ensures p_Int_i32_snap(self, tag, frac) == value
+    ensures p_frac(self) == frac
+
+predicate p_Tuple_2(self: Ref, tag: Int, T$0: Type, U$1: Type) {
+    p_Param(s_Tuple_2_field0(self, T$0, U$1), tag, T$0) && 
+    p_Param(s_Tuple_2_field1(self, T$0, U$1), tag, U$1)
+}
+
+function p_frac(self: Ref): Perm
+
+predicate p_Param(self: Ref, tag: Int, T$0: Type)
+
+predicate p_Int_i32(self: Ref, tag: Int) {
+    acc(self.p_Int_i32_val)
+}
+
+function s_RawPtr_In_Prov(self: s_RawPtr, offset: Int): Bool {
+    0 <= self.addr + offset && self.addr + offset < |self.prov|
+}
+
+function s_RawPtr_deref(self: s_RawPtr, offset: Int): Ref 
+requires s_RawPtr_In_Prov(self, offset)
+{
+    self.prov[self.addr + offset]
+}
+
+function s_Int_i32_type(): Type
+
+function s_Tuple_type(T$0: Type, U$1: Type): Type
+
+domain TypeOf {
+    function s_Param_typeof(arg0: s_Param): Type 
+}
+
+function make_generic_s_Int_i32(self: s_Int_i32): s_Param
+  ensures s_Param_typeof(result) == s_Int_i32_type()
+  ensures make_concrete_s_Int_i32(result) == self
+
+function make_concrete_s_Int_i32(snap: s_Param): s_Int_i32
+  ensures make_generic_s_Int_i32(result) == snap
+
+method make_generic_Int_i32(self: Ref, tag: Int, frac: Perm)
+  requires 0/1 < frac
+  requires frac <= write
+  requires acc(p_Int_i32(self, tag), frac)
+  ensures acc(p_Param(self, tag, s_Int_i32_type()), frac)
+  ensures old(make_generic_s_Int_i32(p_Int_i32_snap(self, tag, frac))) ==
+    p_Param_snap(self, tag, s_Int_i32_type(), frac)
+
+
+method make_concrete_Int_i32(self: Ref, tag: Int, frac: Perm)
+  requires 0/1 < frac
+  requires frac <= write
+  requires acc(p_Param(self, tag, s_Int_i32_type()), frac)
+  ensures acc(p_Int_i32(self, tag), frac)
+  ensures old(p_Param_snap(self, tag, s_Int_i32_type(), frac)) ==
+    make_generic_s_Int_i32(p_Int_i32_snap(self, tag, frac))
