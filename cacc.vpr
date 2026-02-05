@@ -1,0 +1,132 @@
+import "defs.vpr"
+
+// !!!!!!!!!!!!!! PERMISSIONS ARE IGNORED FOR NOW !!!!!!!!!!!!!! //
+// ################# EXAMPLE CACC 1 ######################## //
+/*
+fn foo() {
+    let mut v = 5;
+    let p = &raw mut v;
+    let p_2 = bar(p);
+    apply!(cacc(*p, *p_2));
+}
+
+#[requires(acc(*x))]
+#[ensures(acc(*result))]
+#[ensures(cacc(*x, *result))]
+fn bar(x: *mut i32) -> *mut i32 {
+    let tmp = &'raw mut (*x);
+    let res = tmp as *mut i32;
+    pack!(cacc(*x, *res){
+        expire!(*res);
+    });
+    res
+}
+*/
+
+method foo() {
+    var _1: Ref
+    var _2: Ref
+    var _3: Ref
+
+    // let mut v = 5;
+    p_Int_i32_assign(_1, 0, s_Int_i32_cons(5), 1/1)
+
+    // let p = &raw mut v;
+    p_RawPtr_assign(_2, 0, s_Int_i32_type(), s_RawPtr_cons(0, 0, p_frac(_1), Seq(_1), s_Int_i32_type()), 1/2)
+
+    // let p_2 = bar(p);
+    inhale p_frac(_3) == 1/2
+    bar(_3, _2);
+
+    var tmp_snap: s_RawPtr := p_RawPtr_snap(_2, 0, s_Int_i32_type(), p_frac(_2))
+
+    // apply!(cacc(*p, *p_2));
+    apply acc(p_RawPtr(_3, 0, s_Int_i32_type()), p_frac(_3)) && 
+        s_RawPtr_In_Prov(p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)).addr) &&
+        acc(p_RawPtr(_2, 0, s_Int_i32_type()), p_frac(_2))&& 
+        s_RawPtr_In_Prov(p_RawPtr_snap(_2, 0, s_Int_i32_type(), p_frac(_2)), p_RawPtr_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).addr) &&
+        p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)).addr), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)).tag)
+         --* 
+         acc(p_RawPtr(_3, 0, s_Int_i32_type()), p_frac(_3)) && 
+         s_RawPtr_In_Prov(p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)).addr) &&
+         acc(p_RawPtr(_2, 0, s_Int_i32_type()), p_frac(_2)) && 
+         s_RawPtr_In_Prov(p_RawPtr_snap(_2, 0, s_Int_i32_type(), p_frac(_2)), p_RawPtr_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).addr) &&
+         p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_2, 0, s_Int_i32_type(), p_frac(_2)), p_RawPtr_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).addr), p_RawPtr_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).tag) &&
+         p_RawPtr_snap(_2, 0, s_Int_i32_type(), p_frac(_2)) == tmp_snap 
+
+    // sanity check for this example
+    assert p_Int_i32(_1, 0)
+}
+
+method bar(_0: Ref, _1: Ref)
+requires acc(p_RawPtr(_1, 0, s_Int_i32_type()), 1/2)
+requires p_frac(_0) > 0/1
+requires p_frac(_0) <= write
+// definition of parameter - not declared as mut
+requires p_frac(_1) == 1/2
+// #[requires(acc(*x))]
+requires s_RawPtr_In_Prov(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).addr)
+requires p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).addr), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).tag)
+ensures acc(p_RawPtr(_0, 0, s_Int_i32_type()), p_frac(_0))
+ensures acc(p_RawPtr(_1, 0, s_Int_i32_type()), p_frac(_1))
+ensures p_frac(_0) > 0/1
+ensures p_frac(_0) <= write
+// definition of parameter - not declared as mut
+ensures p_frac(_1) == 1/2
+ensures old(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1))) == p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1))
+// #[ensures(acc(*result))]
+ensures s_RawPtr_In_Prov(p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).addr)
+ensures p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).addr), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).tag)
+// #[ensures(cacc(*x, *result))]
+ensures acc(p_RawPtr(_0, 0, s_Int_i32_type()), p_frac(_0)) && 
+        s_RawPtr_In_Prov(p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).addr) &&
+        acc(p_RawPtr(_1, 0, s_Int_i32_type()), p_frac(_1)) && 
+        s_RawPtr_In_Prov(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).addr) &&
+        p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).addr), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).tag)
+         --* 
+         acc(p_RawPtr(_0, 0, s_Int_i32_type()), p_frac(_0)) && 
+         s_RawPtr_In_Prov(p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).addr) &&
+         acc(p_RawPtr(_1, 0, s_Int_i32_type()), p_frac(_1)) && 
+         s_RawPtr_In_Prov(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).addr) &&
+         p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).addr), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).tag) &&
+         p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)) == old(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1))) 
+{
+    var _2: Ref
+    var _3: Ref
+
+    // let tmp = &'raw mut (*x);
+    p_MutRef_assign(_2, 0, s_Int_i32_type(), s_MutRef_cons(s_RawPtr_deref(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).addr), p_new_tag(), 1/1, s_Int_i32_type()), 1/2)
+    exhale p_Int_i32(p_MutRef_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).addr, p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).tag)
+    inhale p_Int_i32(p_MutRef_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).addr, p_MutRef_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).tag)
+    inhale p_MutRef_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).addr == s_RawPtr_deref(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).addr)
+
+    // let res = tmp as *mut i32;
+    p_RawPtr_assign(_0, 0, s_Int_i32_type(), s_RawPtr_cons(0, p_MutRef_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).tag, p_MutRef_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).frac, Seq(p_MutRef_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).addr), s_Int_i32_type()), 1/2)
+
+    /* pack!(cacc(*x, *res){
+        expire!(*res);
+    });*/
+    var tmp_snap: s_RawPtr := p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1))
+    package acc(p_RawPtr(_0, 0, s_Int_i32_type()), p_frac(_0)) && 
+        s_RawPtr_In_Prov(p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).addr) &&
+        acc(p_RawPtr(_1, 0, s_Int_i32_type()), p_frac(_1)) && 
+        s_RawPtr_In_Prov(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).addr) &&
+        p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).addr), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).tag)
+         --* 
+         acc(p_RawPtr(_0, 0, s_Int_i32_type()), p_frac(_0)) && 
+         s_RawPtr_In_Prov(p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).addr) &&
+         acc(p_RawPtr(_1, 0, s_Int_i32_type()), p_frac(_1)) && 
+         s_RawPtr_In_Prov(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).addr) &&
+         p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).addr), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).tag) &&
+         p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)) == old(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1))) {
+            exhale p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).addr), p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0)).tag)
+            
+            // determined by PCG
+            inhale p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).addr), p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)).tag)
+           inhale p_RawPtr_snap(_1, 0, s_Int_i32_type(), p_frac(_1)) == tmp_snap
+    }
+
+    // res
+    //p_RawPtr_assign(_0, 0, s_Int_i32_type(), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)), p_frac(_0))
+
+}
