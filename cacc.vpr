@@ -1,6 +1,7 @@
 import "defs.vpr"
 
 // ################# EXAMPLE CACC 1 ######################## //
+// !!!!!!!!!!!!!!!! THIS EXAMPLE DOES NOT SHOW HOW VALUES CAN BE FRAMED AND FOCUSSES ON THE cacc MACRO. FOR FRAMING SEE E.G. basic.vpr !!!!!!!!!!!!!!!! //
 /*
 fn foo() {
     let mut v = 5;
