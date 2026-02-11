@@ -153,3 +153,5 @@ method make_concrete_Int_i32(self: Ref, tag: Int, frac: Perm)
   ensures acc(p_Int_i32(self, tag), frac)
   ensures old(p_Param_snap(self, tag, s_Int_i32_type(), frac)) ==
     make_generic_s_Int_i32(p_Int_i32_snap(self, tag, frac))
+
+function get_new_ghost_addr(): Ref
