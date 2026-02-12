@@ -146,7 +146,7 @@ method make_generic_Int_i32(self: Ref, frac: Perm)
     p_Param_snap(self, s_Int_i32_type(), frac)
 
 
-method make_concrete_Int_i32(self: Ref, tag: Int, frac: Perm)
+method make_concrete_Int_i32(self: Ref, frac: Perm)
   requires 0/1 < frac
   requires frac <= write
   requires acc(p_Param(self, s_Int_i32_type()), frac)
