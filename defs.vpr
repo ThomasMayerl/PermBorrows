@@ -23,14 +23,14 @@ adt s_MutRef {
 }
 
 predicate p_RawPtr(self: Ref, T$0: Type) {
-    acc(addr_of_ref(self).p_RawPtr_val)
+    acc(self.p_RawPtr_val)
 }
 
 predicate p_MutRef(self: Ref, T$0: Type) {
-    acc(addr_of_ref(self).p_MutRef_val)
+    acc(self.p_MutRef_val)
 }
 
-function addr_of_ref(self: Ref): Ref
+function addr_of_ref(self: Ref): Int
 function tag_of_ref(self: Ref): Int
 
 function s_Tuple_2_field0(self: Ref, T$0: Type, U$1: Type): Ref
@@ -66,7 +66,7 @@ function p_Int_i32_snap(self: Ref, frac: Perm): s_Int_i32
     requires frac > 0/1
     requires frac <= write 
     requires acc(p_Int_i32(self), frac) {
-        unfolding acc(p_Int_i32(self), frac) in addr_of_ref(self).p_Int_i32_val
+        unfolding acc(p_Int_i32(self), frac) in self.p_Int_i32_val
     }
 
 method p_Tuple_2_assign(self: Ref, T$0: Type, U$1: Type, value: s_Tuple_2, frac: Perm)
@@ -109,7 +109,7 @@ function p_frac(self: Ref): Perm
 predicate p_Param(self: Ref, T$0: Type)
 
 predicate p_Int_i32(self: Ref) {
-    acc(addr_of_ref(self).p_Int_i32_val)
+    acc(self.p_Int_i32_val)
 }
 
 function s_RawPtr_In_Prov(self: s_RawPtr, offset: Int): Bool {
