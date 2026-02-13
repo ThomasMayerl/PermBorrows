@@ -29,15 +29,8 @@ method foo() {
     inhale tag_of_ref(_1) == 0
     p_Int_i32_assign(_1, s_Int_i32_cons(5), 1/1) // 1/1 because of let *mut*
     // let tmp = &'raw mut v;
-    var _1_for_2: Ref 
-    inhale tag_of_ref(_1_for_2) != 0
-    inhale addr_of_ref(_1_for_2) == addr_of_ref(_1)
-    inhale tag_of_ref(_2) == 0
+    var _1_for_2: Ref := p_Int_i32_retag(_1, 1/1)
     p_MutRef_assign(_2, s_Int_i32_type(), s_MutRef_cons(_1_for_2, p_frac(_1), s_Int_i32_type()), 1/2) // 1/2 because of no mut of reference itself
-    var snap_1: s_Int_i32 := p_Int_i32_snap(_1, p_frac(_1))
-    exhale acc(p_Int_i32(_1), p_MutRef_snap(_2, s_Int_i32_type(), p_frac(_2)).frac)
-    inhale acc(p_Int_i32(p_MutRef_snap(_2, s_Int_i32_type(), p_frac(_2)).addr), p_MutRef_snap(_2, s_Int_i32_type(), p_frac(_2)).frac)
-    inhale p_Int_i32_snap(p_MutRef_snap(_2,s_Int_i32_type(), p_frac(_2)).addr, p_MutRef_snap(_2, s_Int_i32_type(), p_frac(_2)).frac) == snap_1
     // let x = tmp as *mut i32;
     inhale tag_of_ref(_3) == 0
     p_RawPtr_assign(_3, s_Int_i32_type(), s_RawPtr_cons(0, p_MutRef_snap(_2, s_Int_i32_type(), p_frac(_2)).frac, Seq(p_MutRef_snap(_2, s_Int_i32_type(), p_frac(_2)).addr), s_Int_i32_type()), 1/2)
@@ -52,10 +45,7 @@ method foo() {
     exhale acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), 0)), 1/1) // 1/1 because we are writing
     p_Int_i32_assign(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), 0), s_Int_i32_cons(1), 1/1)
     // expire!(*x)
-    var snap_3: s_Int_i32 := p_Int_i32_snap(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), 0), p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)).frac)
-    exhale acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), 0)), p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)).frac)
-    inhale acc(p_Int_i32(_1), p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)).frac)
-    inhale p_Int_i32_snap(_1,p_frac(_1)) == snap_3
+    p_Int_i32_unblock(_1, s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), 0), p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)).frac)
     // assert!(v == 1)
     assert p_Int_i32_snap(_1, 1/1) == s_Int_i32_cons(1)
 }

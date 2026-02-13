@@ -121,15 +121,10 @@ method foo2() {
     make_concrete_Int_i32(_2, p_frac(_2))
     make_concrete_Int_i32(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()), p_frac(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type())))
     // let tmp = &'raw mut val.1;
-    var _3_for_2: Ref
-    inhale tag_of_ref(_3_for_2) != 0
-    inhale addr_of_ref(_3_for_2) == addr_of_ref(_2)
-    inhale tag_of_ref(_3) == 0
+    var _3_for_2: Ref := p_Int_i32_retag(_2, write)
     p_MutRef_assign(_3, s_Int_i32_type(), s_MutRef_cons(_3_for_2, 1/1, s_Int_i32_type()), 1/2)
-    var _3_snap: s_MutRef := p_MutRef_snap(_3, s_Int_i32_type(), p_frac(_3))
-    exhale acc(p_Int_i32(_2), _3_snap.frac)
-    inhale acc(p_Int_i32(_3_snap.addr), _3_snap.frac)
     // let ptr = tmp as *mut i32;
+    var _3_snap: s_MutRef := p_MutRef_snap(_3, s_Int_i32_type(), p_frac(_3))
     inhale tag_of_ref(_4) == 0
     p_RawPtr_assign(_4, s_Int_i32_type(), s_RawPtr_cons(0, _3_snap.frac, Seq(_3_snap.addr), s_Int_i32_type()), 1/2)
     assert _3_snap.frac == 1/1

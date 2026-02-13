@@ -36,6 +36,100 @@ function tag_of_ref(self: Ref): Int
 function s_Tuple_2_field0(self: Ref, T$0: Type, U$1: Type): Ref
 function s_Tuple_2_field1(self: Ref, T$0: Type, U$1: Type): Ref
 
+method p_RawPtr_retag(parent: Ref, T$0: Type, frac: Perm) returns (child: Ref)
+    requires frac > 0/1 && frac <= write
+    requires p_frac(parent) > 0/1 && p_frac(parent) <= write
+    requires acc(p_RawPtr(parent, T$0), frac)
+    ensures addr_of_ref(parent) == addr_of_ref(child)
+    ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(p_RawPtr(child, T$0), frac)
+    ensures p_RawPtr_snap(child, T$0, frac) == old(p_RawPtr_snap(parent, T$0, p_frac(parent)))
+
+method p_RawPtr_unblock(parent: Ref, child: Ref, T$0: Type, frac: Perm) 
+    requires frac > 0/1 && frac <= write
+    requires frac + p_frac(parent) > 0/1 && frac + p_frac(parent) <= write
+    requires acc(p_RawPtr(child, T$0), frac)
+    requires addr_of_ref(parent) == addr_of_ref(child)
+    requires tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(p_RawPtr(parent, T$0), frac)
+    ensures p_RawPtr_snap(parent, T$0, frac + p_frac(parent)) == old(p_RawPtr_snap(child, T$0, frac))
+
+method p_Int_i32_retag(parent: Ref, frac: Perm) returns (child: Ref)
+    requires frac > 0/1 && frac <= write
+    requires p_frac(parent) > 0/1 && p_frac(parent) <= write
+    requires acc(p_Int_i32(parent), frac)
+    ensures addr_of_ref(parent) == addr_of_ref(child)
+    ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(p_Int_i32(child), frac)
+    ensures p_Int_i32_snap(child, frac) == old(p_Int_i32_snap(parent, p_frac(parent)))
+
+method p_Int_i32_unblock(parent: Ref, child: Ref, frac: Perm) 
+    requires frac > 0/1 && frac <= write
+    requires frac + p_frac(parent) > 0/1 && frac + p_frac(parent) <= write
+    requires acc(p_Int_i32(child), frac)
+    requires addr_of_ref(parent) == addr_of_ref(child)
+    requires tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(p_Int_i32(parent), frac)
+    ensures p_Int_i32_snap(parent, frac + p_frac(parent)) == old(p_Int_i32_snap(child, frac))
+
+method p_MutRef_retag(parent: Ref, T$0: Type, frac: Perm) returns (child: Ref)
+    requires frac > 0/1 && frac <= write
+    requires p_frac(parent) > 0/1 && p_frac(parent) <= write
+    requires acc(p_MutRef(parent, T$0), frac)
+    ensures addr_of_ref(parent) == addr_of_ref(child)
+    ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(p_MutRef(child, T$0), frac)
+    ensures p_MutRef_snap(child, T$0, frac) == old(p_MutRef_snap(parent, T$0, p_frac(parent)))
+
+method p_MutRef_unblock(parent: Ref, child: Ref, T$0: Type, frac: Perm) 
+    requires frac > 0/1 && frac <= write
+    requires frac + p_frac(parent) > 0/1 && frac + p_frac(parent) <= write
+    requires acc(p_MutRef(child, T$0), frac)
+    requires addr_of_ref(parent) == addr_of_ref(child)
+    requires tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(p_MutRef(parent, T$0), frac)
+    ensures p_MutRef_snap(parent, T$0, frac + p_frac(parent)) == old(p_MutRef_snap(child, T$0, frac))
+
+method p_Tuple_2_retag(parent: Ref, T$0: Type, U$1: Type, frac: Perm) returns (child: Ref)
+    requires frac > 0/1 && frac <= write
+    requires p_frac(parent) > 0/1 && p_frac(parent) <= write
+    requires acc(p_Tuple_2(parent, T$0, U$1), frac)
+    ensures addr_of_ref(parent) == addr_of_ref(child)
+    ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(p_Tuple_2(child, T$0, U$1), frac)
+    ensures p_Tuple_2_snap(child, T$0, U$1, frac) == old(p_Tuple_2_snap(parent, T$0, U$1, p_frac(parent)))
+    ensures unfolding acc(p_Tuple_2(child, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field0(child, T$0, U$1), T$0, frac) == old(unfolding acc(p_Tuple_2(parent, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field0(parent, T$0, U$1), T$0, p_frac(parent)))
+    ensures unfolding acc(p_Tuple_2(child, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field1(child, T$0, U$1), U$1, frac) == old(unfolding acc(p_Tuple_2(parent, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field1(parent, T$0, U$1), U$1, p_frac(parent)))
+
+method p_Tuple_2_unblock(parent: Ref, child: Ref, T$0: Type, U$1: Type, frac: Perm) 
+    requires frac > 0/1 && frac <= write
+    requires frac + p_frac(parent) > 0/1 && frac + p_frac(parent) <= write
+    requires acc(p_Tuple_2(child, T$0, U$1), frac)
+    requires addr_of_ref(parent) == addr_of_ref(child)
+    requires tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(p_Tuple_2(parent, T$0, U$1), frac)
+    ensures p_Tuple_2_snap(parent, T$0, U$1, frac + p_frac(parent)) == old(p_Tuple_2_snap(child, T$0, U$1, frac))
+    ensures unfolding acc(p_Tuple_2(parent, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field0(parent, T$0, U$1), T$0, frac + p_frac(parent)) == old(unfolding acc(p_Tuple_2(child, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field0(child, T$0, U$1), T$0, frac))
+    ensures unfolding acc(p_Tuple_2(parent, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field1(parent, T$0, U$1), U$1, frac + p_frac(parent)) == old(unfolding acc(p_Tuple_2(child, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field1(child, T$0, U$1), U$1, frac))
+
+method p_Param_retag(parent: Ref, T$0: Type, frac: Perm) returns (child: Ref)
+    requires frac > 0/1 && frac <= write
+    requires p_frac(parent) > 0/1 && p_frac(parent) <= write
+    requires acc(p_Param(parent, T$0), frac)
+    ensures addr_of_ref(parent) == addr_of_ref(child)
+    ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(p_Param(child, T$0), frac)
+    ensures p_Param_snap(child, T$0, frac) == old(p_Param_snap(parent, T$0, p_frac(parent)))
+
+method p_Param_unblock(parent: Ref, child: Ref, T$0: Type, frac: Perm) 
+    requires frac > 0/1 && frac <= write
+    requires frac + p_frac(parent) > 0/1 && frac + p_frac(parent) <= write
+    requires acc(p_Param(child, T$0), frac)
+    requires addr_of_ref(parent) == addr_of_ref(child)
+    requires tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(p_Param(parent, T$0), frac)
+    ensures p_Param_snap(parent, T$0, frac + p_frac(parent)) == old(p_Param_snap(child, T$0, frac))
+
 function p_RawPtr_snap(self: Ref, T$0: Type, frac: Perm): s_RawPtr
     requires frac > 0/1
     requires frac <= write
