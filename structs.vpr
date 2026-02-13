@@ -48,89 +48,91 @@ adt s_Struct_str {
     s_Struct_str_cons(x: s_RawPtr, y: s_Int_i32)
 }
 
-predicate p_Struct_str(self: Ref, tag: Int) {
-    p_RawPtr(s_Struct_Str_fieldX(self), tag, s_Int_i32_type()) &&
-    p_Int_i32(s_Struct_Str_fieldY(self), tag)
+predicate p_Struct_str(self: Ref) {
+    p_RawPtr(s_Struct_Str_fieldX(self), s_Int_i32_type()) &&
+    p_Int_i32(s_Struct_Str_fieldY(self))
 }
 
 function s_Struct_Str_fieldX(self: Ref): Ref
 function s_Struct_Str_fieldY(self: Ref): Ref
 
-function p_Struct_str_snap(self: Ref, tag: Int, frac: Perm): s_Struct_str 
+function p_Struct_str_snap(self: Ref, frac: Perm): s_Struct_str 
     requires frac > 0/1
     requires frac <= write
-    requires acc(p_Struct_str(self, tag), frac)
+    requires acc(p_Struct_str(self), frac)
 {
-    unfolding acc(p_Struct_str(self, tag), frac) in
-    s_Struct_str_cons(p_RawPtr_snap(s_Struct_Str_fieldX(self), tag, s_Int_i32_type(), frac), p_Int_i32_snap(s_Struct_Str_fieldY(self), tag, frac))
+    unfolding acc(p_Struct_str(self), frac) in
+    s_Struct_str_cons(p_RawPtr_snap(s_Struct_Str_fieldX(self), s_Int_i32_type(), frac), p_Int_i32_snap(s_Struct_Str_fieldY(self), frac))
 }
 
-method p_Struct_Str_assign(self: Ref, tag: Int, value: s_Struct_str, frac: Perm)
+method p_Struct_Str_assign(self: Ref, value: s_Struct_str, frac: Perm)
     requires frac > 0/1
     requires frac <= write
-    ensures acc(p_Struct_str(self, tag), frac)
-    ensures p_Struct_str_snap(self, tag, frac) == value
+    ensures acc(p_Struct_str(self), frac)
+    ensures p_Struct_str_snap(self, frac) == value
     ensures p_frac(self) == frac
-    ensures unfolding acc(p_Struct_str(self,  tag), frac) in p_frac(s_Struct_Str_fieldX(self)) == frac
-    ensures unfolding acc(p_Struct_str(self,  tag), frac) in p_frac(s_Struct_Str_fieldY(self)) == frac
+    ensures unfolding acc(p_Struct_str(self), frac) in p_frac(s_Struct_Str_fieldX(self)) == frac
+    ensures unfolding acc(p_Struct_str(self), frac) in p_frac(s_Struct_Str_fieldY(self)) == frac
 
 function s_Struct_Str_type(): Type
 
 method Tmp_get_raw(_0: Ref, _1: Ref)
     // definition of parameter - not declared as mut
     requires p_frac(_1) == 1/2
-    requires acc(p_MutRef(_1, 0, s_Struct_Str_type()), p_frac(_1))
+    requires acc(p_MutRef(_1, s_Struct_Str_type()), p_frac(_1))
     requires p_frac(_0) > 0/1
     requires p_frac(_0) <= write
-    requires p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1)).frac > 0/1
-    requires p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1)).frac <= 1/1
-    requires acc(p_Struct_str(p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1)).addr, p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1)).tag), p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1)).frac)
+    requires p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)).frac > 0/1
+    requires p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)).frac <= 1/1
+    requires acc(p_Struct_str(p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)).addr), p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)).frac)
     //#[requires(acc(*self.x))]
-    requires let mutRefSnap == (p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1)))
-        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr, mutRefSnap.tag), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), mutRefSnap.tag, s_Int_i32_type(), mutRefSnap.frac)) in
+    requires let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)))
+        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.frac)) in
         s_RawPtr_In_Prov(rawPtrSnap, 0)
-    requires let mutRefSnap == (p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1)))
-        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr, mutRefSnap.tag), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), mutRefSnap.tag, s_Int_i32_type(), mutRefSnap.frac)) in
+    requires let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)))
+        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.frac)) in
         rawPtrSnap.frac == write
-    requires let mutRefSnap == (p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1)))
-        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr, mutRefSnap.tag), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), mutRefSnap.tag, s_Int_i32_type(), mutRefSnap.frac)) in
-        acc(p_Int_i32(s_RawPtr_deref(rawPtrSnap, 0), rawPtrSnap.tag), rawPtrSnap.frac)
+    requires let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)))
+        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.frac)) in
+        acc(p_Int_i32(s_RawPtr_deref(rawPtrSnap, 0)), rawPtrSnap.frac)
     ensures p_frac(_1) == 1/2
-    ensures acc(p_MutRef(_1, 0, s_Struct_Str_type()), p_frac(_1))
+    ensures acc(p_MutRef(_1, s_Struct_Str_type()), p_frac(_1))
     ensures p_frac(_0) > 0/1
     ensures p_frac(_0) <= write
-    ensures acc(p_RawPtr(_0, 0, s_Int_i32_type()), p_frac(_0))
-    ensures p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1)) == old(p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1)))
+    ensures acc(p_RawPtr(_0, s_Int_i32_type()), p_frac(_0))
+    ensures p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)) == old(p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)))
     //#[ensures(acc(*result))]
-    ensures let rawPtrSnap == (p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0))) in
+    ensures let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), p_frac(_0))) in
         rawPtrSnap.frac == write
-    ensures let rawPtrSnap == (p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0))) in
+    ensures let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), p_frac(_0))) in
         s_RawPtr_In_Prov(rawPtrSnap, 0)
-    ensures let rawPtrSnap == (p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0))) in
-        acc(p_Int_i32(s_RawPtr_deref(rawPtrSnap, 0), rawPtrSnap.tag), rawPtrSnap.frac)
+    ensures let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), p_frac(_0))) in
+        acc(p_Int_i32(s_RawPtr_deref(rawPtrSnap, 0)), rawPtrSnap.frac)
     // #[ensures(old(self.x) === result)] // Snapshot equality -> Same tag, same permissions
-    ensures let mutRefSnap == (p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1))) in
+    ensures let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1))) in
         old(
-            let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr, mutRefSnap.tag), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), mutRefSnap.tag, s_Int_i32_type(), mutRefSnap.frac)) in
+            let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.frac)) in
             rawPtrSnap
-        ) == let rawPtrSnap == (p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0))) in rawPtrSnap
+        ) == let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), p_frac(_0))) in rawPtrSnap
     // #[ensures(old(*self.x) == *result)]
-    ensures let mutRefSnap == (p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1))) in
+    ensures let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1))) in
         old(
-            let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr, mutRefSnap.tag), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), mutRefSnap.tag, s_Int_i32_type(), mutRefSnap.frac)) in
-            let intSnap == (p_Int_i32_snap(s_RawPtr_deref(rawPtrSnap, 0), rawPtrSnap.tag, rawPtrSnap.frac)) in intSnap
+            let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.frac)) in
+            let intSnap == (p_Int_i32_snap(s_RawPtr_deref(rawPtrSnap, 0), rawPtrSnap.frac)) in intSnap
         ) == (
-            let rawPtrSnap == (p_RawPtr_snap(_0, 0, s_Int_i32_type(), p_frac(_0))) in
-            let intSnap == (p_Int_i32_snap(s_RawPtr_deref(rawPtrSnap, 0), rawPtrSnap.tag, rawPtrSnap.frac)) in intSnap
+            let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), p_frac(_0))) in
+            let intSnap == (p_Int_i32_snap(s_RawPtr_deref(rawPtrSnap, 0), rawPtrSnap.frac)) in intSnap
         )
     {
         // self.x
-        p_RawPtr_assign(_0, 0, s_Int_i32_type(), (
-            let mutRefSnap == (p_MutRef_snap(_1, 0, s_Struct_Str_type(), p_frac(_1)))
-            in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr, mutRefSnap.tag), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), mutRefSnap.tag, s_Int_i32_type(), mutRefSnap.frac)) in
+        p_RawPtr_assign(_0, s_Int_i32_type(), (
+            let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)))
+            in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.frac)) in
             rawPtrSnap
         ), p_frac(_0))
     }
+
+function get_new_ghost_addr(): Ref
 
 method foo() {
     var _1: Ref
@@ -141,15 +143,21 @@ method foo() {
     var _6: Ref
     
     //let mut x = 5;
-    p_Int_i32_assign(_1, 0, s_Int_i32_cons(5), 1/1)
+    inhale tag_of_ref(_1) == 0
+    p_Int_i32_assign(_1, s_Int_i32_cons(5), 1/1)
 
     //let tmp = &'raw mut x;
-    p_MutRef_assign(_2, 0, s_Int_i32_type(), s_MutRef_cons(_1, p_new_tag(), 1/1, s_Int_i32_type()), 1/2)
-    exhale p_Int_i32(_1, 0)
-    inhale p_Int_i32(p_MutRef_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).addr, p_MutRef_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).tag)
+    var _2_for_1: Ref
+    inhale tag_of_ref(_2_for_1) != 0
+    inhale addr_of_ref(_2_for_1) == addr_of_ref(_1)
+    inhale tag_of_ref(_2) == 0
+    p_MutRef_assign(_2,  s_Int_i32_type(), s_MutRef_cons(_2_for_1, 1/1, s_Int_i32_type()), 1/2)
+    exhale p_Int_i32(_1)
+    inhale p_Int_i32(p_MutRef_snap(_2, s_Int_i32_type(), p_frac(_2)).addr)
 
     //let p_x = tmp as *mut i32;
-    p_RawPtr_assign(_3, 0, s_Int_i32_type(), s_RawPtr_cons(0, p_MutRef_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).tag, p_MutRef_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).frac, Seq(p_MutRef_snap(_2, 0, s_Int_i32_type(), p_frac(_2)).addr), s_Int_i32_type()), 1/2)
+    inhale tag_of_ref(_3) == 0
+    p_RawPtr_assign(_3, s_Int_i32_type(), s_RawPtr_cons(0, p_MutRef_snap(_2, s_Int_i32_type(), p_frac(_2)).frac, Seq(p_MutRef_snap(_2, s_Int_i32_type(), p_frac(_2)).addr), s_Int_i32_type()), 1/2)
     
     /*
     let str = Tmp {
@@ -157,40 +165,94 @@ method foo() {
         y: 10
     };
     */
-    p_Struct_Str_assign(_4, 0, s_Struct_str_cons(p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)), s_Int_i32_cons(10)), 1/2)
+    inhale tag_of_ref(_4) == 0
+    p_Struct_Str_assign(_4, s_Struct_str_cons(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), s_Int_i32_cons(10)), 1/2)
 
     //let p_x_2 = str.get_raw();
     // implicit reborrowing 
-    var _4_snap: s_Struct_str := p_Struct_str_snap(_4, 0, p_frac(_4))
+    var _4_snap: s_Struct_str := p_Struct_str_snap(_4, p_frac(_4))
     var _4_frac: Perm := p_frac(_4)
-    exhale acc(p_Struct_str(_4, 0), p_frac(_4))
+    exhale acc(p_Struct_str(_4), p_frac(_4))
     _4 := get_new_ghost_addr() // so that we can assign new permission amount
-    p_Struct_Str_assign(_4, 0, _4_snap, _4_frac / 2)
-    p_MutRef_assign(_5, 0, s_Struct_Str_type(), s_MutRef_cons(_4, p_new_tag(), p_frac(_4), s_Struct_Str_type()), 1/2)
-    inhale acc(p_Struct_str(p_MutRef_snap(_5, 0, s_Struct_Str_type(), p_frac(_5)).addr, p_MutRef_snap(_5, 0, s_Struct_Str_type(), p_frac(_5)).tag), p_MutRef_snap(_5, 0, s_Struct_Str_type(), p_frac(_5)).frac)
-    inhale unfolding acc(p_Struct_str(_4, 0), p_frac(_4)) in (p_RawPtr_snap( s_Struct_Str_fieldX(_4), 0, s_Int_i32_type(), p_frac(_4))) == unfolding acc(p_Struct_str(_4, p_MutRef_snap(_5, 0, s_Struct_Str_type(), p_frac(_5)).tag), p_MutRef_snap(_5, 0, s_Struct_Str_type(), p_frac(_5)).frac) in (p_RawPtr_snap(s_Struct_Str_fieldX(_4), p_MutRef_snap(_5, 0, s_Struct_Str_type(), p_frac(_5)).tag, s_Int_i32_type(), p_MutRef_snap(_5, 0, s_Struct_Str_type(), p_frac(_5)).frac))
-    inhale unfolding acc(p_Struct_str(_4, 0), p_frac(_4)) in (p_Int_i32_snap( s_Struct_Str_fieldY(_4), 0, p_frac(_4))) == unfolding acc(p_Struct_str(_4, p_MutRef_snap(_5, 0, s_Struct_Str_type(), p_frac(_5)).tag), p_MutRef_snap(_5, 0, s_Struct_Str_type(), p_frac(_5)).frac) in (p_Int_i32_snap(s_Struct_Str_fieldY(_4), p_MutRef_snap(_5, 0, s_Struct_Str_type(), p_frac(_5)).tag, p_MutRef_snap(_5, 0, s_Struct_Str_type(), p_frac(_5)).frac))
+    inhale tag_of_ref(_4) == 0
+    p_Struct_Str_assign(_4, _4_snap, _4_frac / 2)
+
+    var _5_for_4: Ref
+    inhale tag_of_ref(_5_for_4) != 0
+    inhale addr_of_ref(_5_for_4) == addr_of_ref(_4)
+    inhale tag_of_ref(_5) == 0
+
+    p_MutRef_assign(_5, s_Struct_Str_type(), s_MutRef_cons(_5_for_4, p_frac(_4), s_Struct_Str_type()), 1/2)
+    inhale acc(p_Struct_str(p_MutRef_snap(_5, s_Struct_Str_type(), p_frac(_5)).addr), p_MutRef_snap(_5, s_Struct_Str_type(), p_frac(_5)).frac)
+    inhale unfolding acc(p_Struct_str(_4), p_frac(_4)) in (p_RawPtr_snap( s_Struct_Str_fieldX(_4), s_Int_i32_type(), p_frac(_4))) == unfolding acc(p_Struct_str(p_MutRef_snap(_5, s_Struct_Str_type(), p_frac(_5)).addr), p_MutRef_snap(_5, s_Struct_Str_type(), p_frac(_5)).frac) in (p_RawPtr_snap(s_Struct_Str_fieldX(p_MutRef_snap(_5, s_Struct_Str_type(), p_frac(_5)).addr), s_Int_i32_type(), p_MutRef_snap(_5, s_Struct_Str_type(), p_frac(_5)).frac))
+    inhale unfolding acc(p_Struct_str(_4), p_frac(_4)) in (p_Int_i32_snap( s_Struct_Str_fieldY(_4), p_frac(_4))) == let _5_snap == (p_MutRef_snap(_5, s_Struct_Str_type(), p_frac(_5))) in unfolding acc(p_Struct_str(_5_snap.addr), _5_snap.frac) in (p_Int_i32_snap(s_Struct_Str_fieldY(_5_snap.addr), _5_snap.frac))
     
+    inhale tag_of_ref(_6) == 0
     inhale p_frac(_6) == 1/2
     Tmp_get_raw(_6, _5)
 
     // *p_x = 6;
-    exhale acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)), 0), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)).tag), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)).frac)
-    p_Int_i32_assign(s_RawPtr_deref(p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)), 0), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)).tag, s_Int_i32_cons(6), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)).frac)
+    exhale acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), 0)), p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)).frac)
+    p_Int_i32_assign(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), 0), s_Int_i32_cons(6), p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)).frac)
     
     // assert!(p_x_2 === p_x);
-    assert p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)) == p_RawPtr_snap(_6, 0, s_Int_i32_type(), p_frac(_6))
+    assert p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)) == p_RawPtr_snap(_6, s_Int_i32_type(), p_frac(_6))
 
     // expire!(p_x_2);
-    var deref_6_snap: s_Int_i32 := p_Int_i32_snap(s_RawPtr_deref(p_RawPtr_snap(_6, 0, s_Int_i32_type(), p_frac(_6)), 0), p_RawPtr_snap(_6, 0, s_Int_i32_type(), p_frac(_6)).tag, p_RawPtr_snap(_6, 0, s_Int_i32_type(), p_frac(_6)).frac)
-    exhale acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_6, 0, s_Int_i32_type(), p_frac(_6)), 0), p_RawPtr_snap(_6, 0, s_Int_i32_type(), p_frac(_6)).tag), 1/1)
-    inhale acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_6, 0, s_Int_i32_type(), p_frac(_6)), 0), 0), 1/1)
-    inhale p_Int_i32_snap(s_RawPtr_deref(p_RawPtr_snap(_6, 0, s_Int_i32_type(), p_frac(_6)), 0), 0, 1/1) == deref_6_snap
+    var deref_6_snap: s_Int_i32 := p_Int_i32_snap(s_RawPtr_deref(p_RawPtr_snap(_6, s_Int_i32_type(), p_frac(_6)), 0), p_RawPtr_snap(_6, s_Int_i32_type(), p_frac(_6)).frac)
+    exhale acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_6, s_Int_i32_type(), p_frac(_6)), 0)), 1/1)
+    inhale acc(p_Int_i32(_1), 1/1)
+    inhale p_Int_i32_snap(_1, 1/1) == deref_6_snap
     
     // assert!(x == 6);
-    assert p_Int_i32_snap(_1, 0, p_frac(_1)) == s_Int_i32_cons(6)
+    assert p_Int_i32_snap(_1, p_frac(_1)) == s_Int_i32_cons(6)
 
-    // assert!(*p_x == 6); // Should fail
-    /*exhale acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)), 0), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)).tag), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)).frac)
-    p_Int_i32_assign(s_RawPtr_deref(p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)), 0), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)).tag, s_Int_i32_cons(6), p_RawPtr_snap(_3, 0, s_Int_i32_type(), p_frac(_3)).frac)*/
+    //assert!(*p_x == 6); // Should fail
+    /*exhale acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), 0)), p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)).frac)
+    p_Int_i32_assign(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), 0), s_Int_i32_cons(6), p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)).frac)*/
 }
+
+// ################# EXAMPLE STRUCTS 2 ######################## //
+/*
+fn foo() {
+	let mut last = ListNode {
+	    next: std::ptr::null::<ListNode>() as *mut ListNode,
+	    val: 6,
+	};
+	
+	let mut first = ListNode {
+	    next: &raw mut last, // auto folds because of acc invariant
+	    val: 5,
+	};
+	unsafe {
+        expand!(first.next);
+	    assert!((*first.next).val == 6);
+	    (*first.next).val = 7;
+        assert!(last.val == 7);
+        //first.next.val = 5; // Next line should fail if commented in
+        condense!(first.next);
+	}
+	
+}
+
+struct ListNode {
+    #[invariant(acc(*next))]
+    #[invariant(val <= next.val)]
+    next: *mut ListNode,
+    val: i32
+}
+*/
+
+// function p_Struct_ListNode_val(self: Ref): Ref
+// function p_Struct_ListNode_next(self: Ref): Ref
+// function p_Struct_ListNode_type(): Type
+
+// predicate p_Struct_ListNode(self: Ref, tag: Int) {
+//     p_Int_i32(p_Struct_ListNode_val(self), tag) &&
+//     p_RawPtr(p_Struct_ListNode_next(self), tag, p_Struct_ListNode_type()) &&
+
+//     p_frac(self) > 0/1 && p_frac(self) <= 1/1 &&
+//     let next_snap == (p_RawPtr_snap(p_Struct_ListNode_next(self), tag, p_Struct_ListNode_type(), p_frac(self))) in (
+//         next_snap.prov != Seq() ==> 
+//     )
+// }
