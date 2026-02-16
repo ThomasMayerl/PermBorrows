@@ -50,7 +50,9 @@ adt s_Struct_str {
 
 predicate p_Struct_str(self: Ref) {
     p_RawPtr(s_Struct_Str_fieldX(self), s_Int_i32_type()) &&
-    p_Int_i32(s_Struct_Str_fieldY(self))
+    acc(s_Struct_Str_fieldX(self).p_frac) && 
+    p_Int_i32(s_Struct_Str_fieldY(self)) &&
+    acc(s_Struct_Str_fieldY(self).p_frac)
 }
 
 function s_Struct_Str_fieldX(self: Ref): Ref
@@ -67,91 +69,115 @@ function p_Struct_str_snap(self: Ref, frac: Perm): s_Struct_str
 
 method p_Struct_Str_retag(parent: Ref, frac: Perm) returns (child: Ref)
     requires frac > 0/1 && frac <= write
-    requires p_frac(parent) > 0/1 && p_frac(parent) <= write
-    requires acc(p_Struct_str(parent), frac)
+    requires acc(parent.p_frac)
+    requires parent.p_frac > 0/1 && parent.p_frac <= write
+    requires acc(p_Struct_str(parent), parent.p_frac)
+    ensures acc(parent.p_frac)
+    ensures acc(child.p_frac)
     ensures addr_of_ref(parent) == addr_of_ref(child)
     ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures parent.p_frac == old(parent.p_frac) - frac
+    ensures child.p_frac == frac
     ensures acc(p_Struct_str(child), frac)
-    ensures p_Struct_str_snap(child, frac) == old(p_Struct_str_snap(parent, p_frac(parent)))
-    ensures unfolding acc(p_Struct_str(child), frac) in p_RawPtr_snap(s_Struct_Str_fieldX(child), s_Int_i32_type(), frac) == old(unfolding acc(p_Struct_str(parent), frac) in p_RawPtr_snap(s_Struct_Str_fieldX(parent), s_Int_i32_type(), p_frac(parent)))
-    ensures unfolding acc(p_Struct_str(child), frac) in p_Int_i32_snap(s_Struct_Str_fieldY(child), frac) == old(unfolding acc(p_Struct_str(parent), frac) in p_Int_i32_snap(s_Struct_Str_fieldY(parent), p_frac(parent)))
+    ensures parent.p_frac > 0/1 ==> acc(p_Struct_str(parent), parent.p_frac)
+    ensures p_Struct_str_snap(child, frac) == old(p_Struct_str_snap(parent, parent.p_frac))
+    ensures unfolding acc(p_Struct_str(child), frac) in p_RawPtr_snap(s_Struct_Str_fieldX(child), s_Int_i32_type(), frac) == old(unfolding acc(p_Struct_str(parent), parent.p_frac) in p_RawPtr_snap(s_Struct_Str_fieldX(parent), s_Int_i32_type(), parent.p_frac))
+    ensures unfolding acc(p_Struct_str(child), frac) in p_Int_i32_snap(s_Struct_Str_fieldY(child), frac) == old(unfolding acc(p_Struct_str(parent), parent.p_frac) in p_Int_i32_snap(s_Struct_Str_fieldY(parent), parent.p_frac))
+    ensures parent.p_frac > 0/1 ==> p_Struct_str_snap(parent, parent.p_frac) == old(p_Struct_str_snap(parent, parent.p_frac))
+    ensures parent.p_frac > 0/1 ==> unfolding acc(p_Struct_str(parent), parent.p_frac) in p_RawPtr_snap(s_Struct_Str_fieldX(parent), s_Int_i32_type(), parent.p_frac) == old(unfolding acc(p_Struct_str(parent), parent.p_frac) in p_RawPtr_snap(s_Struct_Str_fieldX(parent), s_Int_i32_type(), parent.p_frac))
+    ensures parent.p_frac > 0/1 ==> unfolding acc(p_Struct_str(parent), parent.p_frac) in p_Int_i32_snap(s_Struct_Str_fieldY(parent), parent.p_frac) == old(unfolding acc(p_Struct_str(parent), parent.p_frac) in p_Int_i32_snap(s_Struct_Str_fieldY(parent), parent.p_frac))
 
 method p_Struct_Str_unblock(parent: Ref, child: Ref, frac: Perm) 
     requires frac > 0/1 && frac <= write
-    requires frac + p_frac(parent) > 0/1 && frac + p_frac(parent) <= write
+    requires acc(parent.p_frac)
+    requires acc(child.p_frac)
+    requires frac + parent.p_frac > 0/1 && frac + parent.p_frac <= write
     requires acc(p_Struct_str(child), frac)
     requires addr_of_ref(parent) == addr_of_ref(child)
     requires tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(parent.p_frac)
+    ensures parent.p_frac == old(parent.p_frac) + frac
     ensures acc(p_Struct_str(parent), frac)
-    ensures p_Struct_str_snap(parent, frac + p_frac(parent)) == old(p_Struct_str_snap(child, frac))
-    ensures unfolding acc(p_Struct_str(parent), frac) in p_RawPtr_snap(s_Struct_Str_fieldX(parent), s_Int_i32_type(), frac + p_frac(parent)) == old(unfolding acc(p_Struct_str(child), frac) in p_RawPtr_snap(s_Struct_Str_fieldX(child), s_Int_i32_type(), frac))
-    ensures unfolding acc(p_Struct_str(parent), frac) in p_Int_i32_snap(s_Struct_Str_fieldY(parent), frac + p_frac(parent)) == old(unfolding acc(p_Struct_str(child), frac) in p_Int_i32_snap(s_Struct_Str_fieldY(child), frac))
+    ensures p_Struct_str_snap(parent, frac + old(parent.p_frac)) == old(p_Struct_str_snap(child, frac))
+    ensures unfolding acc(p_Struct_str(parent), frac) in p_RawPtr_snap(s_Struct_Str_fieldX(parent), s_Int_i32_type(), frac + old(parent.p_frac)) == old(unfolding acc(p_Struct_str(child), frac) in p_RawPtr_snap(s_Struct_Str_fieldX(child), s_Int_i32_type(), frac))
+    ensures unfolding acc(p_Struct_str(parent), frac) in p_Int_i32_snap(s_Struct_Str_fieldY(parent), frac + old(parent.p_frac)) == old(unfolding acc(p_Struct_str(child), frac) in p_Int_i32_snap(s_Struct_Str_fieldY(child), frac))
 
 method p_Struct_Str_assign(self: Ref, value: s_Struct_str, frac: Perm)
     requires frac > 0/1
     requires frac <= write
+    requires acc(self.p_frac)
     ensures acc(p_Struct_str(self), frac)
     ensures p_Struct_str_snap(self, frac) == value
-    ensures p_frac(self) == frac
-    ensures unfolding acc(p_Struct_str(self), frac) in p_frac(s_Struct_Str_fieldX(self)) == frac
-    ensures unfolding acc(p_Struct_str(self), frac) in p_frac(s_Struct_Str_fieldY(self)) == frac
+    ensures acc(self.p_frac)
+    ensures self.p_frac == frac
+    ensures unfolding acc(p_Struct_str(self), frac) in s_Struct_Str_fieldX(self).p_frac == frac
+    ensures unfolding acc(p_Struct_str(self), frac) in s_Struct_Str_fieldY(self).p_frac == frac
 
 function s_Struct_Str_type(): Type
 
 method Tmp_get_raw(_0: Ref, _1: Ref)
     // definition of parameter - not declared as mut
-    requires p_frac(_1) == 1/2
-    requires acc(p_MutRef(_1, s_Struct_Str_type()), p_frac(_1))
-    requires p_frac(_0) > 0/1
-    requires p_frac(_0) <= write
-    requires p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)).frac > 0/1
-    requires p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)).frac <= 1/1
-    requires acc(p_Struct_str(p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)).addr), p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)).frac)
+    requires acc(_1.p_frac)
+    requires _1.p_frac > 0/1
+    requires _1.p_frac < write
+    requires acc(p_MutRef(_1, s_Struct_Str_type()), _1.p_frac)
+    requires acc(_0.p_frac)
+    requires _0.p_frac == write
+    requires acc(p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac).addr.p_frac)
+    requires p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac).addr.p_frac > 0/1
+    requires p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac).addr.p_frac < 1/1
+    requires acc(p_Struct_str(p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac).addr), p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac).addr.p_frac)
     //#[requires(acc(*self.x))]
-    requires let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)))
-        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.frac)) in
+    requires let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac))
+        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.addr.p_frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.addr.p_frac)) in
         s_RawPtr_In_Prov(rawPtrSnap, 0)
-    requires let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)))
-        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.frac)) in
-        rawPtrSnap.frac == write
-    requires let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)))
-        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.frac)) in
-        acc(p_Int_i32(s_RawPtr_deref(rawPtrSnap, 0)), rawPtrSnap.frac)
-    ensures p_frac(_1) == 1/2
-    ensures acc(p_MutRef(_1, s_Struct_Str_type()), p_frac(_1))
-    ensures p_frac(_0) > 0/1
-    ensures p_frac(_0) <= write
-    ensures acc(p_RawPtr(_0, s_Int_i32_type()), p_frac(_0))
-    ensures p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)) == old(p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)))
+    requires let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac))
+        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.addr.p_frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.addr.p_frac)) in
+        acc(s_RawPtr_deref(rawPtrSnap, 0).p_frac)
+    requires let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac))
+        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.addr.p_frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.addr.p_frac)) in
+        s_RawPtr_deref(rawPtrSnap, 0).p_frac == write
+    requires let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac))
+        in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.addr.p_frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.addr.p_frac)) in
+        acc(p_Int_i32(s_RawPtr_deref(rawPtrSnap, 0)), s_RawPtr_deref(rawPtrSnap, 0).p_frac)
+    ensures acc(_1.p_frac)
+    ensures _1.p_frac == old(_1.p_frac)
+    ensures acc(p_MutRef(_1, s_Struct_Str_type()), _1.p_frac)
+    ensures acc(_0.p_frac)
+    ensures _0.p_frac == write
+    ensures acc(p_RawPtr(_0, s_Int_i32_type()), _0.p_frac)
+    ensures p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac) == old(p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac))
     //#[ensures(acc(*result))]
-    ensures let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), p_frac(_0))) in
-        rawPtrSnap.frac == write
-    ensures let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), p_frac(_0))) in
+    ensures let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac)) in
         s_RawPtr_In_Prov(rawPtrSnap, 0)
-    ensures let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), p_frac(_0))) in
-        acc(p_Int_i32(s_RawPtr_deref(rawPtrSnap, 0)), rawPtrSnap.frac)
+    ensures let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac)) in
+        acc(s_RawPtr_deref(rawPtrSnap, 0).p_frac)
+    ensures let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac)) in
+        s_RawPtr_deref(rawPtrSnap, 0).p_frac == write
+    ensures let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac)) in
+        acc(p_Int_i32(s_RawPtr_deref(rawPtrSnap, 0)), s_RawPtr_deref(rawPtrSnap, 0).p_frac)
     // #[ensures(old(self.x) === result)] // Snapshot equality -> Same tag, same permissions
-    ensures let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1))) in
+    ensures let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac)) in
         old(
-            let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.frac)) in
+            let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.addr.p_frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.addr.p_frac)) in
             rawPtrSnap
-        ) == let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), p_frac(_0))) in rawPtrSnap
+        ) == let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac)) in rawPtrSnap
     // #[ensures(old(*self.x) == *result)]
-    ensures let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1))) in
+    ensures let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac)) in
         old(
-            let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.frac)) in
-            let intSnap == (p_Int_i32_snap(s_RawPtr_deref(rawPtrSnap, 0), rawPtrSnap.frac)) in intSnap
+            let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.addr.p_frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.addr.p_frac)) in
+            let intSnap == (p_Int_i32_snap(s_RawPtr_deref(rawPtrSnap, 0), s_RawPtr_deref(rawPtrSnap, 0).p_frac)) in intSnap
         ) == (
-            let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), p_frac(_0))) in
-            let intSnap == (p_Int_i32_snap(s_RawPtr_deref(rawPtrSnap, 0), rawPtrSnap.frac)) in intSnap
+            let rawPtrSnap == (p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac)) in
+            let intSnap == (p_Int_i32_snap(s_RawPtr_deref(rawPtrSnap, 0), s_RawPtr_deref(rawPtrSnap, 0).p_frac)) in intSnap
         )
     {
         // self.x
         p_RawPtr_assign(_0, s_Int_i32_type(), (
-            let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), p_frac(_1)))
-            in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.frac)) in
+            let mutRefSnap == (p_MutRef_snap(_1, s_Struct_Str_type(), _1.p_frac))
+            in let rawPtrSnap == (unfolding acc(p_Struct_str(mutRefSnap.addr), mutRefSnap.addr.p_frac) in p_RawPtr_snap(s_Struct_Str_fieldX(mutRefSnap.addr), s_Int_i32_type(), mutRefSnap.addr.p_frac)) in
             rawPtrSnap
-        ), p_frac(_0))
+        ), _0.p_frac)
     }
 
 function get_new_ghost_addr(): Ref
@@ -166,15 +192,18 @@ method foo() {
     
     //let mut x = 5;
     inhale tag_of_ref(_1) == 0
+    inhale acc(_1.p_frac)
     p_Int_i32_assign(_1, s_Int_i32_cons(5), 1/1)
 
     //let tmp = &'raw mut x;
     var _2_for_1: Ref := p_Int_i32_retag(_1, write)
-    p_MutRef_assign(_2,  s_Int_i32_type(), s_MutRef_cons(_2_for_1, 1/1, s_Int_i32_type()), 1/2)
+    inhale acc(_2.p_frac)
+    p_MutRef_assign(_2,  s_Int_i32_type(), s_MutRef_cons(_2_for_1, s_Int_i32_type()), 1/2)
 
     //let p_x = tmp as *mut i32;
     inhale tag_of_ref(_3) == 0
-    p_RawPtr_assign(_3, s_Int_i32_type(), s_RawPtr_cons(0, p_MutRef_snap(_2, s_Int_i32_type(), p_frac(_2)).frac, Seq(p_MutRef_snap(_2, s_Int_i32_type(), p_frac(_2)).addr), s_Int_i32_type()), 1/2)
+    inhale acc(_3.p_frac)
+    p_RawPtr_assign(_3, s_Int_i32_type(), s_RawPtr_cons(0, Seq(p_MutRef_snap(_2, s_Int_i32_type(), _2.p_frac).addr), s_Int_i32_type()), 1/2)
     
     /*
     let str = Tmp {
@@ -184,9 +213,10 @@ method foo() {
     */
     
     inhale tag_of_ref(_4) == 0
-    p_Struct_Str_assign(_4, s_Struct_str_cons(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), s_Int_i32_cons(10)), 1/2)
+    inhale acc(_4.p_frac)
+    p_Struct_Str_assign(_4, s_Struct_str_cons(p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac), s_Int_i32_cons(10)), 1/2)
 
-    assert unfolding acc(p_Struct_str(_4), p_frac(_4) / 2) in s_RawPtr_In_Prov(p_RawPtr_snap( s_Struct_Str_fieldX(_4), s_Int_i32_type(), 1/2), 0)
+    assert unfolding acc(p_Struct_str(_4), _4.p_frac / 2) in s_RawPtr_In_Prov(p_RawPtr_snap( s_Struct_Str_fieldX(_4), s_Int_i32_type(), 1/2), 0)
 
     //let p_x_2 = str.get_raw();
     // implicit reborrowing 
@@ -204,27 +234,31 @@ method foo() {
     // inhale tag_of_ref(_5) == 0
 
     
-    var _5_for_4: Ref := p_Struct_Str_retag(_4, p_frac(_4) / 2)
-
-    p_MutRef_assign(_5, s_Struct_Str_type(), s_MutRef_cons(_5_for_4, p_frac(_4) / 2, s_Struct_Str_type()), 1/2)
+    var _5_for_4: Ref := p_Struct_Str_retag(_4, _4.p_frac / 2)
+    inhale acc(_5.p_frac)
+    p_MutRef_assign(_5, s_Struct_Str_type(), s_MutRef_cons(_5_for_4, s_Struct_Str_type()), 1/2)
 
     inhale tag_of_ref(_6) == 0
-    inhale p_frac(_6) == 1/2
+    inhale acc(_6.p_frac)
+    inhale _6.p_frac == write
    
     Tmp_get_raw(_6, _5)
 
+    // we declared _6 as shared -> reduce permission to 1/2 after writing to it initially; ignore new ref
+    var _ignored: Ref := p_RawPtr_retag(_6, s_Int_i32_type(), 1/2)
+
     // *p_x = 6;
-    exhale acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), 0)), p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)).frac)
-    p_Int_i32_assign(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), 0), s_Int_i32_cons(6), p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)).frac)
-    
+    exhale acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac), 0)), s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac), 0).p_frac)
+    p_Int_i32_assign(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac), 0), s_Int_i32_cons(6), s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac), 0).p_frac)
+
     // assert!(p_x_2 === p_x);
-    assert p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)) == p_RawPtr_snap(_6, s_Int_i32_type(), p_frac(_6))
+    assert p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac) == p_RawPtr_snap(_6, s_Int_i32_type(), _6.p_frac)
 
     // expire!(p_x_2);
-    p_Int_i32_unblock(_1, s_RawPtr_deref(p_RawPtr_snap(_6, s_Int_i32_type(), p_frac(_6)), 0), p_RawPtr_snap(_6, s_Int_i32_type(), p_frac(_6)).frac)
+    p_Int_i32_unblock(_1, s_RawPtr_deref(p_RawPtr_snap(_6, s_Int_i32_type(), _6.p_frac), 0), s_RawPtr_deref(p_RawPtr_snap(_6, s_Int_i32_type(), _6.p_frac), 0).p_frac)
     
     // assert!(x == 6);
-    assert p_Int_i32_snap(_1, p_frac(_1)) == s_Int_i32_cons(6)
+    assert p_Int_i32_snap(_1, _1.p_frac) == s_Int_i32_cons(6)
 
     //assert!(*p_x == 6); // Should fail
     /*exhale acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)), 0)), p_RawPtr_snap(_3, s_Int_i32_type(), p_frac(_3)).frac)
@@ -262,24 +296,24 @@ struct ListNode {
 }
 */
 
-function p_Struct_ListNode_val(self: Ref): Ref
-function p_Struct_ListNode_next(self: Ref): Ref
-function p_Struct_ListNode_type(): Type
+// function p_Struct_ListNode_val(self: Ref): Ref
+// function p_Struct_ListNode_next(self: Ref): Ref
+// function p_Struct_ListNode_type(): Type
 
-predicate p_Struct_ListNode(self: Ref) {
-    p_Int_i32(p_Struct_ListNode_val(self)) &&
-    p_RawPtr(p_Struct_ListNode_next(self), p_Struct_ListNode_type()) &&
+// predicate p_Struct_ListNode(self: Ref) {
+//     p_Int_i32(p_Struct_ListNode_val(self)) &&
+//     p_RawPtr(p_Struct_ListNode_next(self), p_Struct_ListNode_type()) &&
 
-    p_frac(self) > 0/1 && p_frac(self) <= 1/1 &&
-    let next_snap == (p_RawPtr_snap(p_Struct_ListNode_next(self), p_Struct_ListNode_type(), p_frac(self))) in (
-        next_snap.prov != Seq() ==> (
-            next_snap.frac > 0/1 && next_snap.frac <= write &&
-            s_RawPtr_In_Prov(next_snap, 0) &&
-            acc(p_Struct_ListNode(s_RawPtr_deref(next_snap, 0)), next_snap.frac) &&
-            p_Int_i32_snap(p_Struct_ListNode_val(self), p_frac(self)).val <= unfolding acc(p_Struct_ListNode(s_RawPtr_deref(next_snap, 0)), next_snap.frac) in p_Int_i32_snap(p_Struct_ListNode_val(s_RawPtr_deref(next_snap, 0)), next_snap.frac).val
-        )
-    )
-}
+//     p_frac(self) > 0/1 && p_frac(self) <= 1/1 &&
+//     let next_snap == (p_RawPtr_snap(p_Struct_ListNode_next(self), p_Struct_ListNode_type(), p_frac(self))) in (
+//         next_snap.prov != Seq() ==> (
+//             next_snap.frac > 0/1 && next_snap.frac <= write &&
+//             s_RawPtr_In_Prov(next_snap, 0) &&
+//             acc(p_Struct_ListNode(s_RawPtr_deref(next_snap, 0)), next_snap.frac) &&
+//             p_Int_i32_snap(p_Struct_ListNode_val(self), p_frac(self)).val <= unfolding acc(p_Struct_ListNode(s_RawPtr_deref(next_snap, 0)), next_snap.frac) in p_Int_i32_snap(p_Struct_ListNode_val(s_RawPtr_deref(next_snap, 0)), next_snap.frac).val
+//         )
+//     )
+// }
 
 // method p_Struct_ListNode_assign(self: Ref, value: s_Struct_ListNode, frac: Perm)
 //     requires frac > 0/1

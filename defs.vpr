@@ -1,6 +1,7 @@
 field p_Int_i32_val: s_Int_i32
 field p_RawPtr_val: s_RawPtr
 field p_MutRef_val: s_MutRef
+field p_frac: Perm
 
 domain s_Param {}
 domain Type {}
@@ -15,11 +16,11 @@ adt s_Int_i32 {
 }
 
 adt s_RawPtr {
-    s_RawPtr_cons(addr: Int, frac: Perm, prov: Seq[Ref], T$0: Type)
+    s_RawPtr_cons(addr: Int, prov: Seq[Ref], T$0: Type)
 }
 
 adt s_MutRef {
-    s_MutRef_cons(addr: Ref, frac: Perm, T$0: Type)
+    s_MutRef_cons(addr: Ref, T$0: Type)
 }
 
 predicate p_RawPtr(self: Ref, T$0: Type) {
@@ -38,97 +39,154 @@ function s_Tuple_2_field1(self: Ref, T$0: Type, U$1: Type): Ref
 
 method p_RawPtr_retag(parent: Ref, T$0: Type, frac: Perm) returns (child: Ref)
     requires frac > 0/1 && frac <= write
-    requires p_frac(parent) > 0/1 && p_frac(parent) <= write
-    requires acc(p_RawPtr(parent, T$0), frac)
+    requires acc(parent.p_frac)
+    requires parent.p_frac > 0/1 && parent.p_frac <= write
+    requires acc(p_RawPtr(parent, T$0), parent.p_frac)
+    ensures acc(parent.p_frac)
+    ensures acc(child.p_frac)
     ensures addr_of_ref(parent) == addr_of_ref(child)
     ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures parent.p_frac == old(parent.p_frac) - frac
+    ensures child.p_frac == frac
+    ensures parent.p_frac > 0/1 ==> acc(p_RawPtr(parent, T$0), parent.p_frac)
     ensures acc(p_RawPtr(child, T$0), frac)
-    ensures p_RawPtr_snap(child, T$0, frac) == old(p_RawPtr_snap(parent, T$0, p_frac(parent)))
+    ensures p_RawPtr_snap(child, T$0, frac) == old(p_RawPtr_snap(parent, T$0, parent.p_frac))
+    ensures parent.p_frac > 0/1 ==> p_RawPtr_snap(parent, T$0, parent.p_frac) == old(p_RawPtr_snap(parent, T$0, parent.p_frac)) // also with new frac
 
 method p_RawPtr_unblock(parent: Ref, child: Ref, T$0: Type, frac: Perm) 
     requires frac > 0/1 && frac <= write
-    requires frac + p_frac(parent) > 0/1 && frac + p_frac(parent) <= write
+    requires acc(parent.p_frac)
+    requires acc(child.p_frac)
+    requires frac + parent.p_frac > 0/1 && frac + parent.p_frac <= write
     requires acc(p_RawPtr(child, T$0), frac)
     requires addr_of_ref(parent) == addr_of_ref(child)
     requires tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(parent.p_frac)
+    ensures parent.p_frac == old(parent.p_frac) + frac
     ensures acc(p_RawPtr(parent, T$0), frac)
-    ensures p_RawPtr_snap(parent, T$0, frac + p_frac(parent)) == old(p_RawPtr_snap(child, T$0, frac))
+    ensures p_RawPtr_snap(parent, T$0, frac + old(parent.p_frac)) == old(p_RawPtr_snap(child, T$0, frac))
 
 method p_Int_i32_retag(parent: Ref, frac: Perm) returns (child: Ref)
     requires frac > 0/1 && frac <= write
-    requires p_frac(parent) > 0/1 && p_frac(parent) <= write
-    requires acc(p_Int_i32(parent), frac)
+    requires acc(parent.p_frac)
+    requires parent.p_frac > 0/1 && parent.p_frac <= write
+    requires acc(p_Int_i32(parent), parent.p_frac)
+    ensures acc(parent.p_frac)
+    ensures acc(child.p_frac)
     ensures addr_of_ref(parent) == addr_of_ref(child)
     ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures parent.p_frac == old(parent.p_frac) - frac
+    ensures child.p_frac == frac
+    ensures parent.p_frac > 0/1 ==> acc(p_Int_i32(parent), parent.p_frac)
     ensures acc(p_Int_i32(child), frac)
-    ensures p_Int_i32_snap(child, frac) == old(p_Int_i32_snap(parent, p_frac(parent)))
+    ensures p_Int_i32_snap(child, frac) == old(p_Int_i32_snap(parent, parent.p_frac))
+    ensures parent.p_frac > 0/1 ==> p_Int_i32_snap(parent, parent.p_frac) == old(p_Int_i32_snap(parent, parent.p_frac))
 
 method p_Int_i32_unblock(parent: Ref, child: Ref, frac: Perm) 
     requires frac > 0/1 && frac <= write
-    requires frac + p_frac(parent) > 0/1 && frac + p_frac(parent) <= write
+    requires acc(parent.p_frac)
+    requires acc(child.p_frac)
+    requires frac + parent.p_frac > 0/1 && frac + parent.p_frac <= write
     requires acc(p_Int_i32(child), frac)
     requires addr_of_ref(parent) == addr_of_ref(child)
     requires tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(parent.p_frac)
+    ensures parent.p_frac == old(parent.p_frac) + frac
     ensures acc(p_Int_i32(parent), frac)
-    ensures p_Int_i32_snap(parent, frac + p_frac(parent)) == old(p_Int_i32_snap(child, frac))
+    ensures p_Int_i32_snap(parent, frac + old(parent.p_frac)) == old(p_Int_i32_snap(child, frac))
 
 method p_MutRef_retag(parent: Ref, T$0: Type, frac: Perm) returns (child: Ref)
     requires frac > 0/1 && frac <= write
-    requires p_frac(parent) > 0/1 && p_frac(parent) <= write
-    requires acc(p_MutRef(parent, T$0), frac)
+    requires acc(parent.p_frac)
+    requires parent.p_frac > 0/1 && parent.p_frac <= write
+    requires acc(p_MutRef(parent, T$0), parent.p_frac)
+    ensures acc(parent.p_frac)
+    ensures acc(child.p_frac)
     ensures addr_of_ref(parent) == addr_of_ref(child)
     ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures parent.p_frac == old(parent.p_frac) - frac
+    ensures child.p_frac == frac
+    ensures parent.p_frac > 0/1 ==> acc(p_MutRef(parent, T$0), parent.p_frac)
     ensures acc(p_MutRef(child, T$0), frac)
-    ensures p_MutRef_snap(child, T$0, frac) == old(p_MutRef_snap(parent, T$0, p_frac(parent)))
+    ensures p_MutRef_snap(child, T$0, frac) == old(p_MutRef_snap(parent, T$0, parent.p_frac))
+    ensures parent.p_frac > 0/1 ==> p_MutRef_snap(parent, T$0, parent.p_frac) == old(p_MutRef_snap(parent, T$0, parent.p_frac))
 
 method p_MutRef_unblock(parent: Ref, child: Ref, T$0: Type, frac: Perm) 
     requires frac > 0/1 && frac <= write
-    requires frac + p_frac(parent) > 0/1 && frac + p_frac(parent) <= write
+    requires acc(parent.p_frac)
+    requires acc(child.p_frac)
+    requires frac + parent.p_frac > 0/1 && frac + parent.p_frac <= write
     requires acc(p_MutRef(child, T$0), frac)
     requires addr_of_ref(parent) == addr_of_ref(child)
     requires tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(parent.p_frac)
+    ensures parent.p_frac == old(parent.p_frac) + frac
     ensures acc(p_MutRef(parent, T$0), frac)
-    ensures p_MutRef_snap(parent, T$0, frac + p_frac(parent)) == old(p_MutRef_snap(child, T$0, frac))
+    ensures p_MutRef_snap(parent, T$0, frac + old(parent.p_frac)) == old(p_MutRef_snap(child, T$0, frac))
 
 method p_Tuple_2_retag(parent: Ref, T$0: Type, U$1: Type, frac: Perm) returns (child: Ref)
     requires frac > 0/1 && frac <= write
-    requires p_frac(parent) > 0/1 && p_frac(parent) <= write
-    requires acc(p_Tuple_2(parent, T$0, U$1), frac)
+    requires acc(parent.p_frac)
+    requires parent.p_frac > 0/1 && parent.p_frac <= write
+    requires acc(p_Tuple_2(parent, T$0, U$1), parent.p_frac)
+    ensures acc(parent.p_frac)
+    ensures acc(child.p_frac)
     ensures addr_of_ref(parent) == addr_of_ref(child)
     ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures parent.p_frac == old(parent.p_frac) - frac
+    ensures child.p_frac == frac
     ensures acc(p_Tuple_2(child, T$0, U$1), frac)
-    ensures p_Tuple_2_snap(child, T$0, U$1, frac) == old(p_Tuple_2_snap(parent, T$0, U$1, p_frac(parent)))
-    ensures unfolding acc(p_Tuple_2(child, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field0(child, T$0, U$1), T$0, frac) == old(unfolding acc(p_Tuple_2(parent, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field0(parent, T$0, U$1), T$0, p_frac(parent)))
-    ensures unfolding acc(p_Tuple_2(child, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field1(child, T$0, U$1), U$1, frac) == old(unfolding acc(p_Tuple_2(parent, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field1(parent, T$0, U$1), U$1, p_frac(parent)))
+    ensures parent.p_frac > 0/1 ==> acc(p_Tuple_2(parent, T$0, U$1), parent.p_frac)
+    ensures p_Tuple_2_snap(child, T$0, U$1, frac) == old(p_Tuple_2_snap(parent, T$0, U$1, parent.p_frac))
+    ensures unfolding acc(p_Tuple_2(child, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field0(child, T$0, U$1), T$0, frac) == old(unfolding acc(p_Tuple_2(parent, T$0, U$1), parent.p_frac) in p_Param_snap(s_Tuple_2_field0(parent, T$0, U$1), T$0, parent.p_frac))
+    ensures unfolding acc(p_Tuple_2(child, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field1(child, T$0, U$1), U$1, frac) == old(unfolding acc(p_Tuple_2(parent, T$0, U$1), parent.p_frac) in p_Param_snap(s_Tuple_2_field1(parent, T$0, U$1), U$1, parent.p_frac))
+    ensures parent.p_frac > 0/1 ==> p_Tuple_2_snap(parent, T$0, U$1, parent.p_frac) == old(p_Tuple_2_snap(parent, T$0, U$1, parent.p_frac))
+    ensures parent.p_frac > 0/1 ==> unfolding acc(p_Tuple_2(parent, T$0, U$1), parent.p_frac) in p_Param_snap(s_Tuple_2_field0(parent, T$0, U$1), T$0, parent.p_frac) == old(unfolding acc(p_Tuple_2(parent, T$0, U$1), parent.p_frac) in p_Param_snap(s_Tuple_2_field0(parent, T$0, U$1), T$0, parent.p_frac))
+    ensures parent.p_frac > 0/1 ==> unfolding acc(p_Tuple_2(parent, T$0, U$1), parent.p_frac) in p_Param_snap(s_Tuple_2_field1(parent, T$0, U$1), U$1, parent.p_frac) == old(unfolding acc(p_Tuple_2(parent, T$0, U$1), parent.p_frac) in p_Param_snap(s_Tuple_2_field1(parent, T$0, U$1), U$1, parent.p_frac))
 
 method p_Tuple_2_unblock(parent: Ref, child: Ref, T$0: Type, U$1: Type, frac: Perm) 
     requires frac > 0/1 && frac <= write
-    requires frac + p_frac(parent) > 0/1 && frac + p_frac(parent) <= write
+    requires acc(parent.p_frac)
+    requires acc(child.p_frac)
+    requires frac + parent.p_frac > 0/1 && frac + parent.p_frac <= write
     requires acc(p_Tuple_2(child, T$0, U$1), frac)
     requires addr_of_ref(parent) == addr_of_ref(child)
     requires tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(parent.p_frac)
+    ensures parent.p_frac == old(parent.p_frac) + frac
     ensures acc(p_Tuple_2(parent, T$0, U$1), frac)
-    ensures p_Tuple_2_snap(parent, T$0, U$1, frac + p_frac(parent)) == old(p_Tuple_2_snap(child, T$0, U$1, frac))
-    ensures unfolding acc(p_Tuple_2(parent, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field0(parent, T$0, U$1), T$0, frac + p_frac(parent)) == old(unfolding acc(p_Tuple_2(child, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field0(child, T$0, U$1), T$0, frac))
-    ensures unfolding acc(p_Tuple_2(parent, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field1(parent, T$0, U$1), U$1, frac + p_frac(parent)) == old(unfolding acc(p_Tuple_2(child, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field1(child, T$0, U$1), U$1, frac))
+    ensures p_Tuple_2_snap(parent, T$0, U$1, frac + old(parent.p_frac)) == old(p_Tuple_2_snap(child, T$0, U$1, frac))
+    ensures unfolding acc(p_Tuple_2(parent, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field0(parent, T$0, U$1), T$0, frac + old(parent.p_frac)) == old(unfolding acc(p_Tuple_2(child, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field0(child, T$0, U$1), T$0, frac))
+    ensures unfolding acc(p_Tuple_2(parent, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field1(parent, T$0, U$1), U$1, frac + old(parent.p_frac)) == old(unfolding acc(p_Tuple_2(child, T$0, U$1), frac) in p_Param_snap(s_Tuple_2_field1(child, T$0, U$1), U$1, frac))
 
 method p_Param_retag(parent: Ref, T$0: Type, frac: Perm) returns (child: Ref)
     requires frac > 0/1 && frac <= write
-    requires p_frac(parent) > 0/1 && p_frac(parent) <= write
-    requires acc(p_Param(parent, T$0), frac)
+    requires acc(parent.p_frac)
+    requires parent.p_frac > 0/1 && parent.p_frac <= write
+    requires acc(p_Param(parent, T$0), parent.p_frac)
+    ensures acc(parent.p_frac)
+    ensures acc(child.p_frac)
     ensures addr_of_ref(parent) == addr_of_ref(child)
     ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures parent.p_frac == old(parent.p_frac) - frac
+    ensures child.p_frac == frac
     ensures acc(p_Param(child, T$0), frac)
-    ensures p_Param_snap(child, T$0, frac) == old(p_Param_snap(parent, T$0, p_frac(parent)))
-
+    ensures parent.p_frac > 0/1 ==> acc(p_Param(parent, T$0), parent.p_frac)
+    ensures p_Param_snap(child, T$0, frac) == old(p_Param_snap(parent, T$0, parent.p_frac))
+    ensures parent.p_frac > 0/1 ==> p_Param_snap(parent, T$0, parent.p_frac) == old(p_Param_snap(parent, T$0, parent.p_frac))
+    
 method p_Param_unblock(parent: Ref, child: Ref, T$0: Type, frac: Perm) 
     requires frac > 0/1 && frac <= write
-    requires frac + p_frac(parent) > 0/1 && frac + p_frac(parent) <= write
+    requires acc(parent.p_frac)
+    requires acc(child.p_frac)
+    requires frac + parent.p_frac > 0/1 && frac + parent.p_frac <= write
     requires acc(p_Param(child, T$0), frac)
     requires addr_of_ref(parent) == addr_of_ref(child)
     requires tag_of_ref(parent) != tag_of_ref(child)
+    ensures acc(parent.p_frac)
+    ensures parent.p_frac == old(parent.p_frac) + frac
     ensures acc(p_Param(parent, T$0), frac)
-    ensures p_Param_snap(parent, T$0, frac + p_frac(parent)) == old(p_Param_snap(child, T$0, frac))
+    ensures p_Param_snap(parent, T$0, frac + old(parent.p_frac)) == old(p_Param_snap(child, T$0, frac))
 
 function p_RawPtr_snap(self: Ref, T$0: Type, frac: Perm): s_RawPtr
     requires frac > 0/1
@@ -166,39 +224,47 @@ function p_Int_i32_snap(self: Ref, frac: Perm): s_Int_i32
 method p_Tuple_2_assign(self: Ref, T$0: Type, U$1: Type, value: s_Tuple_2, frac: Perm)
     requires frac > 0/1
     requires frac <= write
+    requires acc(self.p_frac) // self might already be initialized -> do not just assume p_frac does not yet exist. Inhale when we start using this before assign instead
     ensures acc(p_Tuple_2(self, T$0, U$1), frac)
     ensures p_Tuple_2_snap(self, T$0, U$1, frac) == value
-    ensures p_frac(self) == frac
-    ensures unfolding acc(p_Tuple_2(self, T$0, U$1), frac) in p_frac(s_Tuple_2_field0(self, T$0, U$1)) == frac
-    ensures unfolding acc(p_Tuple_2(self, T$0, U$1), frac) in p_frac(s_Tuple_2_field1(self, T$0, U$1)) == frac
+    ensures acc(self.p_frac)
+    ensures self.p_frac == frac
+    ensures unfolding acc(p_Tuple_2(self, T$0, U$1), frac) in s_Tuple_2_field0(self, T$0, U$1).p_frac == frac
+    ensures unfolding acc(p_Tuple_2(self, T$0, U$1), frac) in s_Tuple_2_field1(self, T$0, U$1).p_frac == frac
 
 method p_RawPtr_assign(self: Ref, T$0: Type, value: s_RawPtr, frac: Perm)
     requires frac > 0/1
     requires frac <= write
+    requires acc(self.p_frac)
     ensures acc(p_RawPtr(self, T$0), frac)
     ensures p_RawPtr_snap(self, T$0, frac) == value
-    ensures p_frac(self) == frac
+    ensures acc(self.p_frac)
+    ensures self.p_frac == frac
 
 method p_MutRef_assign(self: Ref, T$0: Type, value: s_MutRef, frac: Perm)
     requires frac > 0/1
     requires frac <= write
+    requires acc(self.p_frac)
     ensures acc(p_MutRef(self, T$0), frac)
     ensures p_MutRef_snap(self, T$0, frac) == value
-    ensures p_frac(self) == frac
+    ensures acc(self.p_frac)
+    ensures self.p_frac == frac
 
 method p_Int_i32_assign(self: Ref, value: s_Int_i32, frac: Perm)
     requires frac > 0/1
     requires frac <= write
+    requires acc(self.p_frac)
     ensures acc(p_Int_i32(self), frac)
     ensures p_Int_i32_snap(self, frac) == value
-    ensures p_frac(self) == frac
+    ensures acc(self.p_frac)
+    ensures self.p_frac == frac
 
 predicate p_Tuple_2(self: Ref, T$0: Type, U$1: Type) {
     p_Param(s_Tuple_2_field0(self, T$0, U$1), T$0) && 
-    p_Param(s_Tuple_2_field1(self, T$0, U$1), U$1)
+    acc(s_Tuple_2_field0(self, T$0, U$1).p_frac) &&
+    p_Param(s_Tuple_2_field1(self, T$0, U$1), U$1) &&
+    acc(s_Tuple_2_field1(self, T$0, U$1).p_frac)
 }
-
-function p_frac(self: Ref): Perm
 
 predicate p_Param(self: Ref, T$0: Type)
 
