@@ -18,24 +18,30 @@ fn bar(ptr: *mut i32) {
 
 
 method bar(_1: Ref)
-requires p_frac(_1) == 1/2 // because _1 itself is not mutable in bar
-requires acc(p_RawPtr(_1, s_Int_i32_type()), p_frac(_1))
+requires acc(_1.p_frac)
+requires _1.p_frac > 0/1
+requires _1.p_frac < write
+requires acc(p_RawPtr(_1, s_Int_i32_type()), _1.p_frac)
 // requires(acc(*(ptr - 1)))
-requires p_RawPtr_snap(_1, s_Int_i32_type(), p_frac(_1)).frac > 0/1
-requires p_RawPtr_snap(_1, s_Int_i32_type(), p_frac(_1)).frac <= write
-requires s_RawPtr_In_Prov(p_RawPtr_snap(_1, s_Int_i32_type(), p_frac(_1)), -1)
-requires p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), p_frac(_1)), -1))
-ensures acc(p_RawPtr(_1, s_Int_i32_type()), p_frac(_1))
-ensures p_frac(_1) == 1/2
+requires s_RawPtr_In_Prov(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1)
+requires acc(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1).p_frac)
+requires s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1).p_frac > 0/1
+requires s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1).p_frac <= write
+requires p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1))
+ensures acc(_1.p_frac)
+ensures _1.p_frac == old(_1.p_frac)
+ensures acc(p_RawPtr(_1, s_Int_i32_type()), _1.p_frac)
 // ensures(acc(*(ptr - 1)))
-ensures p_RawPtr_snap(_1, s_Int_i32_type(), old(p_frac(_1))).frac > 0/1
-ensures p_RawPtr_snap(_1, s_Int_i32_type(), old(p_frac(_1))).frac <= write
-ensures s_RawPtr_In_Prov(p_RawPtr_snap(_1, s_Int_i32_type(), old(p_frac(_1))), -1)
-ensures p_Int_i32(old(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), old(p_frac(_1))), -1)))
+ensures s_RawPtr_In_Prov(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1)
+ensures acc(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1).p_frac)
+ensures s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1).p_frac > 0/1
+ensures s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1).p_frac <= write
+ensures s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1) == old(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1))
+ensures p_Int_i32(old(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1)))
 {
     // *(ptr-1) = 2
-    exhale p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), p_frac(_1)), -1))
-    p_Int_i32_assign(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), p_frac(_1)), -1), s_Int_i32_cons(2), 1/1)
+    exhale p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1))
+    p_Int_i32_assign(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1), s_Int_i32_cons(2), 1/1)
 }
 
 method foo() {
@@ -45,26 +51,29 @@ method foo() {
     var _1_prov: Seq[Ref]
     // let mut val = (1, 2);
     inhale tag_of_ref(_1) == 0
+    inhale acc(_1.p_frac)
     p_Tuple_2_assign(_1, s_Int_i32_type(), s_Int_i32_type(), s_Tuple_2_cons(make_generic_s_Int_i32(s_Int_i32_cons(1)), make_generic_s_Int_i32(s_Int_i32_cons(2))), write)
     // PCG says expand
-    unfold acc(p_Tuple_2(_1, s_Int_i32_type(), s_Int_i32_type()), p_frac(_1))
+    unfold acc(p_Tuple_2(_1, s_Int_i32_type(), s_Int_i32_type()), _1.p_frac)
     _1_prov := Seq(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()), s_Tuple_2_field1(_1, s_Int_i32_type(), s_Int_i32_type()))
     inhale tag_of_ref(_2) == 0
+    inhale acc(_2.p_frac)
     _2 := s_Tuple_2_field1(_1, s_Int_i32_type(), s_Int_i32_type())
-    make_concrete_Int_i32(_2, p_frac(_2))
-    make_concrete_Int_i32(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()), p_frac(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type())))
+    make_concrete_Int_i32(_2, _2.p_frac)
+    make_concrete_Int_i32(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()), s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()).p_frac)
     // let ptr = &raw mut val.1
     inhale tag_of_ref(_3) == 0
-    p_RawPtr_assign(_3, s_Int_i32_type(), s_RawPtr_cons(1, p_frac(_2), _1_prov, s_Int_i32_type()), 1/2)
+    inhale acc(_3.p_frac)
+    p_RawPtr_assign(_3, s_Int_i32_type(), s_RawPtr_cons(1, _1_prov, s_Int_i32_type()), 1/2)
     // bar(ptr)
     bar(_3)
     // assert!(val.1 == 2)
     assert acc(p_Int_i32(_2), wildcard)
-    assert p_Int_i32_snap(_2, p_frac(_2)).val == 2
+    assert p_Int_i32_snap(_2, _2.p_frac).val == 2
     // should not work
     // assert!(val.0 == 1)
     assert acc(p_Int_i32(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type())), wildcard) // this should still work
-    assert p_Int_i32_snap(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()), p_frac(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()))).val == 2 // this should not
+    assert p_Int_i32_snap(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()), s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()).p_frac).val == 2 // this should not
 }
 
 
@@ -84,24 +93,30 @@ fn bar(ptr: *mut i32) {
 }*/
 
 method bar2(_1: Ref)
-requires p_frac(_1) == 1/2 // because _1 itself is not mutable in bar
-requires acc(p_RawPtr(_1, s_Int_i32_type()), p_frac(_1))
+requires acc(_1.p_frac)
+requires _1.p_frac > 0/1
+requires _1.p_frac < write
+requires acc(p_RawPtr(_1, s_Int_i32_type()), _1.p_frac)
 // requires(acc(*(ptr - 1)))
-requires p_RawPtr_snap(_1, s_Int_i32_type(), p_frac(_1)).frac > 0/1
-requires p_RawPtr_snap(_1, s_Int_i32_type(), p_frac(_1)).frac <= write
-requires s_RawPtr_In_Prov(p_RawPtr_snap(_1, s_Int_i32_type(), p_frac(_1)), -1)
-requires p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), p_frac(_1)), -1))
-ensures acc(p_RawPtr(_1, s_Int_i32_type()), p_frac(_1))
-ensures p_frac(_1) == 1/2
+requires s_RawPtr_In_Prov(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1)
+requires acc(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1).p_frac)
+requires s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1).p_frac > 0/1
+requires s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1).p_frac <= write
+requires p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1))
+ensures acc(_1.p_frac)
+ensures _1.p_frac == old(_1.p_frac)
+ensures acc(p_RawPtr(_1, s_Int_i32_type()), _1.p_frac)
 // ensures(acc(*(ptr - 1)))
-ensures p_RawPtr_snap(_1, s_Int_i32_type(), old(p_frac(_1))).frac > 0/1
-ensures p_RawPtr_snap(_1, s_Int_i32_type(), old(p_frac(_1))).frac <= write
-ensures s_RawPtr_In_Prov(p_RawPtr_snap(_1, s_Int_i32_type(), old(p_frac(_1))), -1)
-ensures p_Int_i32(old(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), old(p_frac(_1))), -1)))
+ensures s_RawPtr_In_Prov(p_RawPtr_snap(_1, s_Int_i32_type(), old(_1.p_frac)), -1)
+ensures acc(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1).p_frac)
+ensures s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1).p_frac > 0/1
+ensures s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1).p_frac <= write
+ensures s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1) == old(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1))
+ensures p_Int_i32(old(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1)))
 {
     // *(ptr-1) = 2
-    exhale p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), p_frac(_1)), -1))
-    p_Int_i32_assign(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), p_frac(_1)), -1), s_Int_i32_cons(2), 1/1)
+    exhale p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1))
+    p_Int_i32_assign(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), -1), s_Int_i32_cons(2), 1/1)
 }
 
 method foo2() {
@@ -112,24 +127,26 @@ method foo2() {
     var _1_prov: Seq[Ref]
     // let mut val = (1, 2);
     inhale tag_of_ref(_1) == 0
+    inhale acc(_1.p_frac)
     p_Tuple_2_assign(_1, s_Int_i32_type(), s_Int_i32_type(), s_Tuple_2_cons(make_generic_s_Int_i32(s_Int_i32_cons(1)), make_generic_s_Int_i32(s_Int_i32_cons(2))), write)
     // PCG says expand
-    unfold acc(p_Tuple_2(_1, s_Int_i32_type(), s_Int_i32_type()), p_frac(_1))
+    unfold acc(p_Tuple_2(_1, s_Int_i32_type(), s_Int_i32_type()), _1.p_frac)
     _1_prov := Seq(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()), s_Tuple_2_field1(_1, s_Int_i32_type(), s_Int_i32_type()))
     inhale tag_of_ref(_2) == 0
+    inhale acc(_2.p_frac)
     _2 := s_Tuple_2_field1(_1, s_Int_i32_type(), s_Int_i32_type())
-    make_concrete_Int_i32(_2, p_frac(_2))
-    make_concrete_Int_i32(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()), p_frac(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type())))
+    make_concrete_Int_i32(_2, _2.p_frac)
+    make_concrete_Int_i32(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()), s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()).p_frac)
     // let tmp = &'raw mut val.1;
     var _3_for_2: Ref := p_Int_i32_retag(_2, write)
-    p_MutRef_assign(_3, s_Int_i32_type(), s_MutRef_cons(_3_for_2, 1/1, s_Int_i32_type()), 1/2)
+    inhale acc(_3.p_frac)
+    p_MutRef_assign(_3, s_Int_i32_type(), s_MutRef_cons(_3_for_2, s_Int_i32_type()), 1/2)
     // let ptr = tmp as *mut i32;
-    var _3_snap: s_MutRef := p_MutRef_snap(_3, s_Int_i32_type(), p_frac(_3))
+    var _3_snap: s_MutRef := p_MutRef_snap(_3, s_Int_i32_type(), _3.p_frac)
     inhale tag_of_ref(_4) == 0
-    p_RawPtr_assign(_4, s_Int_i32_type(), s_RawPtr_cons(0, _3_snap.frac, Seq(_3_snap.addr), s_Int_i32_type()), 1/2)
-    assert _3_snap.frac == 1/1
-    assert (p_RawPtr_snap(_4, s_Int_i32_type(), p_frac(_4))).frac == 1/1
-    assert acc(p_Int_i32(_3_snap.addr), _3_snap.frac)
-    assert p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_4, s_Int_i32_type(), p_frac(_4)), 0))
+    inhale acc(_4.p_frac)
+    p_RawPtr_assign(_4, s_Int_i32_type(), s_RawPtr_cons(0, Seq(_3_snap.addr), s_Int_i32_type()), 1/2)
+    assert acc(p_Int_i32(_3_snap.addr), _3_snap.addr.p_frac)
+    assert p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_4, s_Int_i32_type(), _4.p_frac), 0))
     bar2(_4)
 }
