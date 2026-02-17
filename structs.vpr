@@ -278,12 +278,12 @@ fn foo() {
 	    val: 5,
 	};
 	unsafe {
-        expand!(first.next);
+        unpack!(first.next);
 	    assert!((*first.next).val == 6);
 	    (*first.next).val = 7;
         assert!(last.val == 7);
-        //first.next.val = 5; // Next line should fail if commented in
-        condense!(first.next);
+        //first.next.val = 4; // Should fail once first is packed
+        pack!(first.next);
 	}
 	
 }
@@ -296,43 +296,102 @@ struct ListNode {
 }
 */
 
-// function p_Struct_ListNode_val(self: Ref): Ref
-// function p_Struct_ListNode_next(self: Ref): Ref
-// function p_Struct_ListNode_type(): Type
+adt s_Struct_ListNode {
+    s_Struct_ListNode_cons(next: s_RawPtr, y: s_Int_i32)
+}
 
-// predicate p_Struct_ListNode(self: Ref) {
-//     p_Int_i32(p_Struct_ListNode_val(self)) &&
-//     p_RawPtr(p_Struct_ListNode_next(self), p_Struct_ListNode_type()) &&
+function s_Struct_ListNode_val(self: Ref): Ref
+function s_Struct_ListNode_next(self: Ref): Ref
+function s_Struct_ListNode_type(): Type
 
-//     p_frac(self) > 0/1 && p_frac(self) <= 1/1 &&
-//     let next_snap == (p_RawPtr_snap(p_Struct_ListNode_next(self), p_Struct_ListNode_type(), p_frac(self))) in (
-//         next_snap.prov != Seq() ==> (
-//             next_snap.frac > 0/1 && next_snap.frac <= write &&
-//             s_RawPtr_In_Prov(next_snap, 0) &&
-//             acc(p_Struct_ListNode(s_RawPtr_deref(next_snap, 0)), next_snap.frac) &&
-//             p_Int_i32_snap(p_Struct_ListNode_val(self), p_frac(self)).val <= unfolding acc(p_Struct_ListNode(s_RawPtr_deref(next_snap, 0)), next_snap.frac) in p_Int_i32_snap(p_Struct_ListNode_val(s_RawPtr_deref(next_snap, 0)), next_snap.frac).val
-//         )
-//     )
-// }
+predicate p_Struct_ListNode(self: Ref) {
+    p_Int_i32(s_Struct_ListNode_val(self)) &&
+    acc(s_Struct_ListNode_val(self).p_frac) && 
+    p_RawPtr(s_Struct_ListNode_next(self), s_Struct_ListNode_type()) &&
+    acc(s_Struct_ListNode_next(self).p_frac) && 
+    s_Struct_ListNode_next(self).p_frac > 0/1 && s_Struct_ListNode_next(self).p_frac <= write &&
+    s_Struct_ListNode_val(self).p_frac > 0/1 && s_Struct_ListNode_val(self).p_frac <= write &&
 
-// method p_Struct_ListNode_assign(self: Ref, value: s_Struct_ListNode, frac: Perm)
-//     requires frac > 0/1
-//     requires frac <= write
-//     ensures acc(p_Struct_str(self), frac)
-//     ensures p_Struct_str_snap(self, frac) == value
-//     ensures p_frac(self) == frac
-//     ensures unfolding acc(p_Struct_str(self), frac) in p_frac(s_Struct_Str_fieldX(self)) == frac
-//     ensures unfolding acc(p_Struct_str(self), frac) in p_frac(s_Struct_Str_fieldY(self)) == frac
+    let next_snap == (p_RawPtr_snap(s_Struct_ListNode_next(self), s_Struct_ListNode_type(), s_Struct_ListNode_next(self).p_frac)) in (
+        next_snap.prov != Seq() ==> (
+            s_RawPtr_In_Prov(next_snap, 0) &&
+            acc(s_RawPtr_deref(next_snap, 0).p_frac) &&
+            s_RawPtr_deref(next_snap, 0).p_frac > 0/1 && s_RawPtr_deref(next_snap, 0).p_frac <= write &&
+            acc(p_Struct_ListNode(s_RawPtr_deref(next_snap, 0)), s_RawPtr_deref(next_snap, 0).p_frac) &&
+            p_Int_i32_snap(s_Struct_ListNode_val(self), s_Struct_ListNode_val(self).p_frac).val <= unfolding acc(p_Struct_ListNode(s_RawPtr_deref(next_snap, 0)), s_RawPtr_deref(next_snap, 0).p_frac) in p_Int_i32_snap(s_Struct_ListNode_val(s_RawPtr_deref(next_snap, 0)), s_RawPtr_deref(next_snap, 0).p_frac).val
+        )
+    )
+}
 
-// method foo2() {
-//     var _1: Ref
+function p_Struct_ListNode_snap(self: Ref, frac: Perm): s_Struct_ListNode
+    requires frac > 0/1
+    requires frac <= write
+    requires acc(p_Struct_ListNode(self), frac)
+{
+    unfolding acc(p_Struct_ListNode(self), frac) in
+    s_Struct_ListNode_cons(p_RawPtr_snap(s_Struct_ListNode_next(self), s_Struct_ListNode_type(), frac), p_Int_i32_snap(s_Struct_ListNode_val(self), frac))
+}
 
-//     /*
-//     let mut last = ListNode {
-// 	    next: std::ptr::null::<ListNode>() as *mut ListNode,
-// 	    val: 6,
-// 	};
-//     */
-//     inhale tag_of_ref(_1) == 0
-//     p_Struct_ListNode_assign()
-// }
+method p_Struct_ListNode_assign(self: Ref, value: s_Struct_ListNode, frac: Perm)
+    requires frac > 0/1
+    requires frac <= write
+    requires acc(self.p_frac)
+    ensures acc(p_Struct_ListNode(self), frac)
+    ensures p_Struct_ListNode_snap(self, frac) == value
+    ensures acc(self.p_frac)
+    ensures self.p_frac == frac
+    ensures unfolding acc(p_Struct_ListNode(self), frac) in s_Struct_ListNode_next(self).p_frac == frac
+    ensures unfolding acc(p_Struct_ListNode(self), frac) in s_Struct_ListNode_val(self).p_frac == frac
+
+method foo2() {
+    var _1: Ref
+    var _2: Ref
+
+    /*
+    let mut last = ListNode {
+	    next: std::ptr::null::<ListNode>() as *mut ListNode,
+	    val: 6,
+	};
+    */
+    inhale tag_of_ref(_1) == 0
+    inhale acc(_1.p_frac)
+    p_Struct_ListNode_assign(_1, s_Struct_ListNode_cons(s_RawPtr_cons(0, Seq(), s_Struct_ListNode_type()), s_Int_i32_cons(6)), write)
+
+    /* 
+    let mut first = ListNode {
+	    next: &raw mut last, // auto folds because of acc invariant
+	    val: 5,
+	};
+    */
+    inhale tag_of_ref(_2) == 0
+    inhale acc(_2.p_frac)
+    inhale _2.p_frac == write
+    inhale acc(s_Struct_ListNode_val(_2).p_frac)
+    inhale s_Struct_ListNode_val(_2).p_frac == _2.p_frac
+    inhale acc(s_Struct_ListNode_next(_2).p_frac)
+    inhale s_Struct_ListNode_next(_2).p_frac == _2.p_frac
+    inhale p_Int_i32(s_Struct_ListNode_val(_2))
+    inhale p_RawPtr(s_Struct_ListNode_next(_2), s_Struct_ListNode_type())
+    inhale p_Int_i32_snap(s_Struct_ListNode_val(_2), _2.p_frac) == s_Int_i32_cons(5)
+    inhale p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), _2.p_frac) == s_RawPtr_cons(0, Seq(_1), s_Struct_ListNode_type())
+    fold acc(p_Struct_ListNode(_2), _2.p_frac)
+
+    // PCG says we need to unpack first
+    unfold acc(p_Struct_ListNode(_2), _2.p_frac)
+    // unpack!(first.next);
+    unfold acc(p_Struct_ListNode(s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0)), s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0).p_frac)
+    // assert!((*first.next).val == 6);
+    assert p_Int_i32_snap(s_Struct_ListNode_val(s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0)), s_Struct_ListNode_val(s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0)).p_frac) == s_Int_i32_cons(6)
+    // (*first.next).val = 7;
+    exhale acc(p_Int_i32(s_Struct_ListNode_val(s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0))), s_Struct_ListNode_val(s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0)).p_frac)
+    p_Int_i32_assign(s_Struct_ListNode_val(s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0)), s_Int_i32_cons(7), s_Struct_ListNode_val(s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0)).p_frac)
+    // assert!(last.val == 7);
+    assert p_Int_i32_snap(s_Struct_ListNode_val(_1), s_Struct_ListNode_val(_1).p_frac) == s_Int_i32_cons(7)
+    //first.next.val = 4; // Should fail once first is packed
+    /*exhale acc(p_Int_i32(s_Struct_ListNode_val(s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0))), s_Struct_ListNode_val(s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0)).p_frac)
+    p_Int_i32_assign(s_Struct_ListNode_val(s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0)), s_Int_i32_cons(4), s_Struct_ListNode_val(s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0)).p_frac)*/
+    // pack!(first.next);
+    fold acc(p_Struct_ListNode(s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0)), s_RawPtr_deref(p_RawPtr_snap(s_Struct_ListNode_next(_2), s_Struct_ListNode_type(), s_Struct_ListNode_next(_2).p_frac), 0).p_frac)
+    // PCG says pack
+    fold acc(p_Struct_ListNode(_2), _2.p_frac)
+}
