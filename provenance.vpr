@@ -50,19 +50,16 @@ method foo() {
     var _3: Ref
     var _1_prov: Seq[Ref]
     // let mut val = (1, 2);
-    inhale tag_of_ref(_1) == 0
     inhale acc(_1.p_frac)
     p_Tuple_2_assign(_1, s_Int_i32_type(), s_Int_i32_type(), s_Tuple_2_cons(make_generic_s_Int_i32(s_Int_i32_cons(1)), make_generic_s_Int_i32(s_Int_i32_cons(2))), write)
     // PCG says expand
     unfold acc(p_Tuple_2(_1, s_Int_i32_type(), s_Int_i32_type()), _1.p_frac)
     _1_prov := Seq(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()), s_Tuple_2_field1(_1, s_Int_i32_type(), s_Int_i32_type()))
-    inhale tag_of_ref(_2) == 0
     inhale acc(_2.p_frac)
     _2 := s_Tuple_2_field1(_1, s_Int_i32_type(), s_Int_i32_type())
     make_concrete_Int_i32(_2, _2.p_frac)
     make_concrete_Int_i32(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()), s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()).p_frac)
     // let ptr = &raw mut val.1
-    inhale tag_of_ref(_3) == 0
     inhale acc(_3.p_frac)
     p_RawPtr_assign(_3, s_Int_i32_type(), s_RawPtr_cons(1, _1_prov, s_Int_i32_type()), 1/2)
     // bar(ptr)
@@ -126,13 +123,11 @@ method foo2() {
     var _4: Ref
     var _1_prov: Seq[Ref]
     // let mut val = (1, 2);
-    inhale tag_of_ref(_1) == 0
     inhale acc(_1.p_frac)
     p_Tuple_2_assign(_1, s_Int_i32_type(), s_Int_i32_type(), s_Tuple_2_cons(make_generic_s_Int_i32(s_Int_i32_cons(1)), make_generic_s_Int_i32(s_Int_i32_cons(2))), write)
     // PCG says expand
     unfold acc(p_Tuple_2(_1, s_Int_i32_type(), s_Int_i32_type()), _1.p_frac)
     _1_prov := Seq(s_Tuple_2_field0(_1, s_Int_i32_type(), s_Int_i32_type()), s_Tuple_2_field1(_1, s_Int_i32_type(), s_Int_i32_type()))
-    inhale tag_of_ref(_2) == 0
     inhale acc(_2.p_frac)
     _2 := s_Tuple_2_field1(_1, s_Int_i32_type(), s_Int_i32_type())
     make_concrete_Int_i32(_2, _2.p_frac)
@@ -143,7 +138,6 @@ method foo2() {
     p_MutRef_assign(_3, s_Int_i32_type(), s_MutRef_cons(_3_for_2, s_Int_i32_type()), 1/2)
     // let ptr = tmp as *mut i32;
     var _3_snap: s_MutRef := p_MutRef_snap(_3, s_Int_i32_type(), _3.p_frac)
-    inhale tag_of_ref(_4) == 0
     inhale acc(_4.p_frac)
     p_RawPtr_assign(_4, s_Int_i32_type(), s_RawPtr_cons(0, Seq(_3_snap.addr), s_Int_i32_type()), 1/2)
     assert acc(p_Int_i32(_3_snap.addr), _3_snap.addr.p_frac)

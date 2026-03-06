@@ -26,7 +26,6 @@ method foo() {
     var _3: Ref
     var _4: Ref
     // let mut v = 5;
-    inhale tag_of_ref(_1) == 0
     inhale acc(_1.p_frac)
     p_Int_i32_assign(_1, s_Int_i32_cons(5), 1/1) // 1/1 because of let *mut*
     // let tmp = &'raw mut v;
@@ -34,11 +33,9 @@ method foo() {
     inhale acc(_2.p_frac)
     p_MutRef_assign(_2, s_Int_i32_type(), s_MutRef_cons(_1_for_2, s_Int_i32_type()), 1/2) // 1/2 because of no mut of reference itself
     // let x = tmp as *mut i32;
-    inhale tag_of_ref(_3) == 0
     inhale acc(_3.p_frac)
     p_RawPtr_assign(_3, s_Int_i32_type(), s_RawPtr_cons(0, Seq(p_MutRef_snap(_2, s_Int_i32_type(), _2.p_frac).addr), s_Int_i32_type()), 1/2)
     // let y = bar(x);
-    inhale tag_of_ref(_4) == 0
     inhale acc(_4.p_frac)
     inhale _4.p_frac == write
     bar(_4, _3)

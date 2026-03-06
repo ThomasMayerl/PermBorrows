@@ -32,7 +32,7 @@ predicate p_MutRef(self: Ref, T$0: Type) {
 }
 
 function addr_of_ref(self: Ref): Int
-function tag_of_ref(self: Ref): Int
+function parent_of_ref(self: Ref): Ref
 
 function s_Tuple_2_field0(self: Ref, T$0: Type, U$1: Type): Ref
 function s_Tuple_2_field1(self: Ref, T$0: Type, U$1: Type): Ref
@@ -45,7 +45,7 @@ method p_RawPtr_retag(parent: Ref, T$0: Type, frac: Perm) returns (child: Ref)
     ensures acc(parent.p_frac)
     ensures acc(child.p_frac)
     ensures addr_of_ref(parent) == addr_of_ref(child)
-    ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures parent_of_ref(child) == parent
     ensures parent.p_frac == old(parent.p_frac) - frac
     ensures child.p_frac == frac
     ensures parent.p_frac > 0/1 ==> acc(p_RawPtr(parent, T$0), parent.p_frac)
@@ -60,7 +60,7 @@ method p_RawPtr_unblock(parent: Ref, child: Ref, T$0: Type, frac: Perm)
     requires frac + parent.p_frac > 0/1 && frac + parent.p_frac <= write
     requires acc(p_RawPtr(child, T$0), frac)
     requires addr_of_ref(parent) == addr_of_ref(child)
-    requires tag_of_ref(parent) != tag_of_ref(child)
+    requires parent_of_ref(child) == parent
     ensures acc(parent.p_frac)
     ensures parent.p_frac == old(parent.p_frac) + frac
     ensures acc(p_RawPtr(parent, T$0), frac)
@@ -74,7 +74,7 @@ method p_Int_i32_retag(parent: Ref, frac: Perm) returns (child: Ref)
     ensures acc(parent.p_frac)
     ensures acc(child.p_frac)
     ensures addr_of_ref(parent) == addr_of_ref(child)
-    ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures parent_of_ref(child) == parent
     ensures parent.p_frac == old(parent.p_frac) - frac
     ensures child.p_frac == frac
     ensures parent.p_frac > 0/1 ==> acc(p_Int_i32(parent), parent.p_frac)
@@ -89,7 +89,7 @@ method p_Int_i32_unblock(parent: Ref, child: Ref, frac: Perm)
     requires frac + parent.p_frac > 0/1 && frac + parent.p_frac <= write
     requires acc(p_Int_i32(child), frac)
     requires addr_of_ref(parent) == addr_of_ref(child)
-    requires tag_of_ref(parent) != tag_of_ref(child)
+    requires parent_of_ref(child) == parent
     ensures acc(parent.p_frac)
     ensures parent.p_frac == old(parent.p_frac) + frac
     ensures acc(p_Int_i32(parent), frac)
@@ -103,7 +103,7 @@ method p_MutRef_retag(parent: Ref, T$0: Type, frac: Perm) returns (child: Ref)
     ensures acc(parent.p_frac)
     ensures acc(child.p_frac)
     ensures addr_of_ref(parent) == addr_of_ref(child)
-    ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures parent_of_ref(child) == parent
     ensures parent.p_frac == old(parent.p_frac) - frac
     ensures child.p_frac == frac
     ensures parent.p_frac > 0/1 ==> acc(p_MutRef(parent, T$0), parent.p_frac)
@@ -118,7 +118,7 @@ method p_MutRef_unblock(parent: Ref, child: Ref, T$0: Type, frac: Perm)
     requires frac + parent.p_frac > 0/1 && frac + parent.p_frac <= write
     requires acc(p_MutRef(child, T$0), frac)
     requires addr_of_ref(parent) == addr_of_ref(child)
-    requires tag_of_ref(parent) != tag_of_ref(child)
+    requires parent_of_ref(child) == parent
     ensures acc(parent.p_frac)
     ensures parent.p_frac == old(parent.p_frac) + frac
     ensures acc(p_MutRef(parent, T$0), frac)
@@ -132,7 +132,7 @@ method p_Tuple_2_retag(parent: Ref, T$0: Type, U$1: Type, frac: Perm) returns (c
     ensures acc(parent.p_frac)
     ensures acc(child.p_frac)
     ensures addr_of_ref(parent) == addr_of_ref(child)
-    ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures parent_of_ref(child) == parent
     ensures parent.p_frac == old(parent.p_frac) - frac
     ensures child.p_frac == frac
     ensures acc(p_Tuple_2(child, T$0, U$1), frac)
@@ -151,7 +151,7 @@ method p_Tuple_2_unblock(parent: Ref, child: Ref, T$0: Type, U$1: Type, frac: Pe
     requires frac + parent.p_frac > 0/1 && frac + parent.p_frac <= write
     requires acc(p_Tuple_2(child, T$0, U$1), frac)
     requires addr_of_ref(parent) == addr_of_ref(child)
-    requires tag_of_ref(parent) != tag_of_ref(child)
+    requires parent_of_ref(child) == parent
     ensures acc(parent.p_frac)
     ensures parent.p_frac == old(parent.p_frac) + frac
     ensures acc(p_Tuple_2(parent, T$0, U$1), frac)
@@ -167,7 +167,7 @@ method p_Param_retag(parent: Ref, T$0: Type, frac: Perm) returns (child: Ref)
     ensures acc(parent.p_frac)
     ensures acc(child.p_frac)
     ensures addr_of_ref(parent) == addr_of_ref(child)
-    ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures parent_of_ref(child) == parent
     ensures parent.p_frac == old(parent.p_frac) - frac
     ensures child.p_frac == frac
     ensures acc(p_Param(child, T$0), frac)
@@ -182,7 +182,7 @@ method p_Param_unblock(parent: Ref, child: Ref, T$0: Type, frac: Perm)
     requires frac + parent.p_frac > 0/1 && frac + parent.p_frac <= write
     requires acc(p_Param(child, T$0), frac)
     requires addr_of_ref(parent) == addr_of_ref(child)
-    requires tag_of_ref(parent) != tag_of_ref(child)
+    requires parent_of_ref(child) == parent
     ensures acc(parent.p_frac)
     ensures parent.p_frac == old(parent.p_frac) + frac
     ensures acc(p_Param(parent, T$0), frac)

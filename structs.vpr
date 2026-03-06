@@ -75,7 +75,7 @@ method p_Struct_Str_retag(parent: Ref, frac: Perm) returns (child: Ref)
     ensures acc(parent.p_frac)
     ensures acc(child.p_frac)
     ensures addr_of_ref(parent) == addr_of_ref(child)
-    ensures tag_of_ref(parent) != tag_of_ref(child)
+    ensures parent == parent_of_ref(child)
     ensures parent.p_frac == old(parent.p_frac) - frac
     ensures child.p_frac == frac
     ensures acc(p_Struct_str(child), frac)
@@ -94,7 +94,7 @@ method p_Struct_Str_unblock(parent: Ref, child: Ref, frac: Perm)
     requires frac + parent.p_frac > 0/1 && frac + parent.p_frac <= write
     requires acc(p_Struct_str(child), frac)
     requires addr_of_ref(parent) == addr_of_ref(child)
-    requires tag_of_ref(parent) != tag_of_ref(child)
+    requires parent == parent_of_ref(child)
     ensures acc(parent.p_frac)
     ensures parent.p_frac == old(parent.p_frac) + frac
     ensures acc(p_Struct_str(parent), frac)
@@ -191,7 +191,6 @@ method foo() {
     var _6: Ref
     
     //let mut x = 5;
-    inhale tag_of_ref(_1) == 0
     inhale acc(_1.p_frac)
     p_Int_i32_assign(_1, s_Int_i32_cons(5), 1/1)
 
@@ -201,7 +200,6 @@ method foo() {
     p_MutRef_assign(_2,  s_Int_i32_type(), s_MutRef_cons(_2_for_1, s_Int_i32_type()), 1/2)
 
     //let p_x = tmp as *mut i32;
-    inhale tag_of_ref(_3) == 0
     inhale acc(_3.p_frac)
     p_RawPtr_assign(_3, s_Int_i32_type(), s_RawPtr_cons(0, Seq(p_MutRef_snap(_2, s_Int_i32_type(), _2.p_frac).addr), s_Int_i32_type()), 1/2)
     
@@ -212,7 +210,6 @@ method foo() {
     };
     */
     
-    inhale tag_of_ref(_4) == 0
     inhale acc(_4.p_frac)
     p_Struct_Str_assign(_4, s_Struct_str_cons(p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac), s_Int_i32_cons(10)), 1/2)
 
@@ -238,7 +235,6 @@ method foo() {
     inhale acc(_5.p_frac)
     p_MutRef_assign(_5, s_Struct_Str_type(), s_MutRef_cons(_5_for_4, s_Struct_Str_type()), 1/2)
 
-    inhale tag_of_ref(_6) == 0
     inhale acc(_6.p_frac)
     inhale _6.p_frac == write
    
@@ -353,7 +349,6 @@ method foo2() {
 	    val: 6,
 	};
     */
-    inhale tag_of_ref(_1) == 0
     inhale acc(_1.p_frac)
     p_Struct_ListNode_assign(_1, s_Struct_ListNode_cons(s_RawPtr_cons(0, Seq(), s_Struct_ListNode_type()), s_Int_i32_cons(6)), write)
 
@@ -363,7 +358,6 @@ method foo2() {
 	    val: 5,
 	};
     */
-    inhale tag_of_ref(_2) == 0
     inhale acc(_2.p_frac)
     inhale _2.p_frac == write
     inhale acc(s_Struct_ListNode_val(_2).p_frac)

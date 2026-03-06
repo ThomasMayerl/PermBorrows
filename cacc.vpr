@@ -29,17 +29,14 @@ method foo() {
     var _3: Ref
 
     // let mut v = 5;
-    inhale tag_of_ref(_1) == 0
     inhale acc(_1.p_frac)
     p_Int_i32_assign(_1, s_Int_i32_cons(5), 1/1)
 
     // let p = &raw mut v;
-    inhale tag_of_ref(_2) == 0
     inhale acc(_2.p_frac)
     p_RawPtr_assign(_2, s_Int_i32_type(), s_RawPtr_cons(0, Seq(_1), s_Int_i32_type()), 1/2)
 
     // let p_2 = bar(p);
-    inhale tag_of_ref(_3) == 0
     inhale acc(_3.p_frac)
     inhale _3.p_frac == write
     bar(_3, _2);
@@ -61,7 +58,7 @@ method foo() {
         s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac), 0).p_frac == 1/1 &&
         s_RawPtr_deref(p_RawPtr_snap(_2, s_Int_i32_type(), _2.p_frac), 0).p_frac == 0/1 &&
         addr_of_ref(s_RawPtr_deref(p_RawPtr_snap(_2, s_Int_i32_type(), _2.p_frac), 0)) == addr_of_ref(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac), 0)) &&
-        tag_of_ref(s_RawPtr_deref(p_RawPtr_snap(_2, s_Int_i32_type(), _2.p_frac), 0)) != tag_of_ref(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac), 0)) &&
+        s_RawPtr_deref(p_RawPtr_snap(_2, s_Int_i32_type(), _2.p_frac), 0) == parent_of_ref(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac), 0)) &&
         acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac), 0)), s_RawPtr_deref(p_RawPtr_snap(_3, s_Int_i32_type(), _3.p_frac), 0).p_frac)
          --* 
         acc(_3.p_frac) &&
@@ -113,7 +110,7 @@ ensures s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0).p_frac
 ensures acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0)), s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0).p_frac)
 // #[ensures(cacc(*x, *result))] // ensures that *x == *result -> address equality -> only where x is currently pointing to; prov doesn't have to be equal! tag can't be the same
 ensures addr_of_ref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac).prov[p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac).addr]) == addr_of_ref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac).prov[p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac).addr])
-ensures tag_of_ref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac).prov[p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac).addr]) != tag_of_ref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac).prov[p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac).addr])
+ensures p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac).prov[p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac).addr] == parent_of_ref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac).prov[p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac).addr])
 ensures acc(_0.p_frac) &&
         acc(_1.p_frac) &&
         _0.p_frac > 0/1 &&
@@ -129,7 +126,7 @@ ensures acc(_0.p_frac) &&
         s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0).p_frac == 1/1 &&
         s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), 0).p_frac == 0/1 &&
         addr_of_ref(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), 0)) == addr_of_ref(s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0)) &&
-        tag_of_ref(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), 0)) != tag_of_ref(s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0)) &&
+        s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), 0) == parent_of_ref(s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0)) &&
         acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0)), s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0).p_frac)
          --* 
         acc(_0.p_frac) &&
@@ -176,7 +173,7 @@ ensures acc(_0.p_frac) &&
         s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0).p_frac == 1/1 &&
         s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), 0).p_frac == 0/1 &&
         addr_of_ref(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), 0)) == addr_of_ref(s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0)) &&
-        tag_of_ref(s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), 0)) != tag_of_ref(s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0)) &&
+        s_RawPtr_deref(p_RawPtr_snap(_1, s_Int_i32_type(), _1.p_frac), 0) == parent_of_ref(s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0)) &&
         acc(p_Int_i32(s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0)), s_RawPtr_deref(p_RawPtr_snap(_0, s_Int_i32_type(), _0.p_frac), 0).p_frac)
          --* 
         acc(_0.p_frac) &&
